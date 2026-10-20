@@ -60,14 +60,14 @@ export default function LandingPage() {
             <ButtonLink href="/run">{hero.cta}</ButtonLink>
           </div>
 
-          <ul className="mt-xl grid grid-cols-1 gap-y-xs sm:grid-cols-3 sm:gap-x-lg">
+          <ul className="mt-xl grid grid-cols-1 gap-y-xs border border-faint bg-canvas/80 px-md py-sm backdrop-blur-sm sm:grid-cols-3 sm:gap-x-lg">
             {hero.ledger.map((item, index) => (
               <li
                 key={item}
                 className={
                   index > 0
-                    ? "border-t border-faint pt-xs text-caption-sm uppercase text-muted sm:border-l sm:border-t-0 sm:pl-lg sm:pt-0"
-                    : "text-caption-sm uppercase text-muted"
+                    ? "border-t border-faint pt-xs text-caption-sm font-medium uppercase text-body sm:border-l sm:border-t-0 sm:pl-lg sm:pt-0"
+                    : "text-caption-sm font-medium uppercase text-body"
                 }
               >
                 {item}
