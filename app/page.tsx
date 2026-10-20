@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import Link from "next/link";
+import { AnimatedRollText } from "@/components/landing/AnimatedRollText";
 import { GrainGate } from "@/components/landing/GrainGate";
 import { LandingMotion } from "@/components/landing/LandingMotion";
 import { ScreenIndex } from "@/components/landing/ScreenIndex";
@@ -38,12 +39,10 @@ export default function LandingPage() {
       <div className="knell-container relative z-10 flex flex-1 flex-col justify-center px-5 pb-section">
         <ScreenIndex value={indices[0]} plated />
 
-          <h1
-            data-hero-wordmark
+          <AnimatedRollText
+            text={hero.wordmark}
             className="knell-display-xxl text-display-xxl uppercase text-ink"
-          >
-            {hero.wordmark}
-          </h1>
+          />
 
           <p className="mt-xl max-w-[32ch] knell-display-lg text-display-lg uppercase text-ink">
             {heroWords.map((word, index) => (
