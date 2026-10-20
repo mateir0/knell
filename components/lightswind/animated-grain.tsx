@@ -503,27 +503,34 @@ export function AnimatedGrain({
     interactive,
   ]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!interactive || !canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = 1.0 - (e.clientY - rect.top) / rect.height;
-    mouseRef.current.targetX = Math.max(0, Math.min(1, x));
-    mouseRef.current.targetY = Math.max(0, Math.min(1, y));
-  };
-
-  const handleMouseLeave = () => {
+  useEffect(() => {
     if (!interactive) return;
-    mouseRef.current.targetX = 0.5;
-    mouseRef.current.targetY = 0.5;
-  };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
+      const y = 1.0 - Math.max(0, Math.min(1, e.clientY / window.innerHeight));
+      mouseRef.current.targetX = x;
+      mouseRef.current.targetY = y;
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.targetX = 0.5;
+      mouseRef.current.targetY = 0.5;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    document.documentElement.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.documentElement.removeEventListener(
+        "mouseleave",
+        handleMouseLeave,
+      );
+    };
+  }, [interactive]);
 
   return (
-    <div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={cn("relative w-full h-full overflow-hidden", className)}
-    >
+    <div className={cn("relative w-full h-full overflow-hidden", className)}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full block pointer-events-none"
