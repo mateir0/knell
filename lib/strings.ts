@@ -357,6 +357,8 @@ export const strings = {
       "The search budget is exhausted for now — the sweep cannot run.",
     judgeNoProof:
       "The judge gave no proof for that verdict — treat this one as unchecked.",
+    rateLimited:
+      "Too many checks from here — the sweep is resting. Try again in a bit.",
     title: "Not a candidate list.",
   },
 

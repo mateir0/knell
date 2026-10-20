@@ -8,6 +8,7 @@ import {
 } from "@/lib/evidence";
 import { judgeCandidate, writeQueries } from "@/lib/judge";
 import { ModelUnreachableError } from "@/lib/llm";
+import { clientKeyFrom, consumeCheck } from "@/lib/rate-limit";
 import type { CheckResult } from "@/lib/verdict";
 
 export const runtime = "nodejs";
@@ -45,10 +46,18 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!consumeCheck(clientKeyFrom(request))) {
+    return NextResponse.json(unchecked(strings.errors.rateLimited));
+  }
+
   try {
     const queries = await writeQueries(candidate.data);
     const pack = await buildEvidence(candidate.data, queries);
     const verdict = await judgeCandidate(candidate.data, pack);
+
+    if (verdict.verdict === "could_not_check") {
+      return NextResponse.json(verdict);
+    }
 
     const evidenceUrls = new Set<string>();
     for (const key of ["existence", "demand", "incumbent"] as const) {
@@ -57,17 +66,35 @@ export async function POST(request: Request) {
       }
     }
 
-    const receiptsHeld = verdict.receiptUrls.every((url) =>
-      evidenceUrls.has(url),
-    );
-    const killerHeld =
-      verdict.verdict === "dead" || verdict.verdict === "zombie_gap"
-        ? verdict.killerUrl != null && evidenceUrls.has(verdict.killerUrl)
-        : true;
+    const headline = verdict.headline.trim();
+    if (headline === "") {
+      return NextResponse.json(unchecked(strings.errors.judgeNoProof));
+    }
 
-    return NextResponse.json(
-      receiptsHeld && killerHeld ? verdict : unchecked(strings.errors.judgeNoProof),
-    );
+    if (
+      verdict.receiptUrls.length === 0 ||
+      !verdict.receiptUrls.every((url) => evidenceUrls.has(url))
+    ) {
+      return NextResponse.json(unchecked(strings.errors.judgeNoProof));
+    }
+
+    if (verdict.verdict === "dead" || verdict.verdict === "zombie_gap") {
+      if (
+        verdict.killerUrl == null ||
+        !evidenceUrls.has(verdict.killerUrl) ||
+        verdict.killerName == null
+      ) {
+        return NextResponse.json(unchecked(strings.errors.judgeNoProof));
+      }
+      return NextResponse.json({ ...verdict, headline });
+    }
+
+    return NextResponse.json({
+      ...verdict,
+      headline,
+      killerName: null,
+      killerUrl: null,
+    });
   } catch (error) {
     if (error instanceof SearchNotConfiguredError) {
       return NextResponse.json(unchecked(strings.errors.searchNotConfigured));
