@@ -59,6 +59,7 @@ export const strings = {
   nav: {
     wordmark: "Knell",
     run: "Run",
+    home: "Back home",
     items: [
       { label: "RUN A SWEEP", href: "/run" },
       { label: "THE MODES", href: "#modes" },

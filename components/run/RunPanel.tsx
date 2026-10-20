@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, Input, Select, Textarea } from "@/components/ui/Field";
 import { CandidateCard } from "@/components/run/CandidateCard";
+import { MagneticButton } from "@/components/lightswind/magnetic-button";
 import { strings } from "@/lib/strings";
 import type { Candidate } from "@/lib/schema";
 
@@ -117,33 +118,66 @@ export function RunPanel() {
 
   return (
     <div>
-      <div>
-        <div
-          className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/80 p-1 backdrop-blur-sm"
-          role="group"
-          aria-label={strings.run.modes.hackathon}
-        >
-          {(["hackathon", "app"] as const).map((option) => {
-            const active = mode === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setMode(option)}
-                aria-pressed={active}
-                className={`rounded-full border border-transparent px-5 py-2 text-button uppercase transition-colors duration-150 ${
-                  active ? "bg-accent/10 text-accent border-accent/60" : "text-body hover:text-ink"
-                }`}
-              >
-                {option === "hackathon" ? strings.run.modes.hackathon : strings.run.modes.app}
-              </button>
-            );
-          })}
+      <nav className="flex items-center justify-between gap-md border-b border-faint py-lg">
+        <div className="flex items-center md:w-[150px]">
+          <MagneticButton
+            href="/"
+            variant="ghost"
+            size="sm"
+            strength={0.35}
+            radius={80}
+            className="border-border bg-surface/60 text-button uppercase text-ink backdrop-blur-sm hover:border-accent hover:text-accent"
+          >
+            {strings.nav.home}
+          </MagneticButton>
         </div>
-        <span className="mt-xs block text-body-xs text-muted">
-          {strings.run.switchHint}
-        </span>
-      </div>
+
+        <div className="flex flex-1 justify-center">
+          <div
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/80 p-1 backdrop-blur-sm"
+            role="group"
+            aria-label={strings.run.modes.hackathon}
+          >
+            {(["hackathon", "app"] as const).map((option) => {
+              const active = mode === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setMode(option)}
+                  aria-pressed={active}
+                  className={`rounded-full border border-transparent px-3 py-2 text-button uppercase transition-colors duration-150 sm:px-5 ${
+                    active ? "bg-accent/10 text-accent border-accent/60" : "text-body hover:text-ink"
+                  }`}
+                >
+                  {option === "hackathon" ? strings.run.modes.hackathon : strings.run.modes.app}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="hidden items-center justify-end md:flex md:w-[150px]">
+          <span className="text-caption-sm uppercase text-muted">{strings.nav.run}</span>
+        </div>
+      </nav>
+
+      <p className="mt-md text-center text-body-xs text-muted">
+        {strings.run.switchHint}
+      </p>
+
+      <div className="mt-xl grid gap-xl items-start lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div>
+          <div
+            aria-hidden="true"
+            className="mb-md h-[2px] w-16 bg-accent"
+          />
+          <h1 className="knell-display-lg text-display-lg uppercase text-ink">
+            {strings.run.title}
+          </h1>
+          <p className="mt-sm max-w-[54ch] text-body-md text-body">
+            {strings.run.subtitle}
+          </p>
 
       {mode === "hackathon" ? (
         <form onSubmit={handleSubmit} className="mt-lg">
@@ -310,6 +344,51 @@ export function RunPanel() {
           </div>
         </section>
       ) : null}
+        </div>
+
+        <aside className="hidden sticky top-lg lg:block">
+          <div className="border border-faint bg-surface/80 p-lg backdrop-blur-sm">
+            <h2 className="text-heading text-ink">
+              {strings.landing.sweep.claim}
+            </h2>
+            <p className="mt-sm text-body-sm text-body">
+              {strings.landing.sweep.body}
+            </p>
+            <div>
+              {strings.landing.sweep.checks.map((check, index) => (
+                <div
+                  key={check.index}
+                  className={`flex gap-md py-md ${
+                    index > 0 ? "border-t border-faint" : ""
+                  }`}
+                >
+                  <span className="pt-0.5 text-caption-sm text-accent">
+                    {check.index}
+                  </span>
+                  <div>
+                    <p className="text-body-md font-medium text-ink">
+                      {check.title}
+                    </p>
+                    <p className="text-body-sm text-body">{check.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="border-t border-faint pt-md text-body-xs text-muted">
+              {strings.run.resultsNote}
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <footer className="flex items-center justify-between border-t border-faint py-lg">
+        <span className="text-caption-sm uppercase text-muted">
+          {strings.nav.wordmark}
+        </span>
+        <span className="hidden text-caption-sm uppercase text-muted sm:block">
+          {strings.landing.hero.tagline}
+        </span>
+      </footer>
     </div>
   );
 }
