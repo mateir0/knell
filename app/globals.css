@@ -8,6 +8,7 @@
 @theme {
   /* ---- colors ---- */
   --color-canvas: #0a0a0b;
+  --color-abyss: #050505;
   --color-surface: #141416;
   --color-surface-raised: #1c1c1f;
   --color-ink: #ededed;

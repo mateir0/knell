@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import { AnimatedRollText } from "@/components/landing/AnimatedRollText";
+import { FoldNav } from "@/components/landing/FoldNav";
 import { GrainGate } from "@/components/landing/GrainGate";
 import { LandingMotion } from "@/components/landing/LandingMotion";
 import { ScreenIndex } from "@/components/landing/ScreenIndex";
@@ -16,27 +16,25 @@ export default function LandingPage() {
   const heroWords = hero.tagline.split(" ");
 
   return (
-    <main className="relative z-10">
+    <>
+      <FoldNav
+        wordmark={strings.nav.wordmark}
+        runLabel={strings.nav.run}
+        menuLabel={strings.nav.menuLabel}
+        closeLabel={strings.nav.closeLabel}
+        items={[...strings.nav.items]}
+        footerLine={hero.tagline}
+        footerMeta={strings.nav.footerMeta}
+      />
+      <main id="knell-page" className="relative z-10">
       {/* Screen 1 — KNELL */}
-      <section className="relative isolate flex min-h-screen flex-col overflow-hidden">
+      <section className="relative isolate flex min-h-screen flex-col overflow-hidden pt-20">
         <GrainGate />
         <div
           className="knell-hero-glow pointer-events-none absolute inset-0"
           aria-hidden="true"
         />
-        <nav className="relative z-10 flex items-center justify-between border-b border-faint bg-canvas/80 px-5 py-lg backdrop-blur-sm">
-          <span className="text-caption-sm uppercase text-ink">
-            {strings.nav.wordmark}
-          </span>
-          <Link
-            href="/run"
-            className="text-caption-sm uppercase text-ink transition-opacity duration-150 hover:opacity-60"
-          >
-          {strings.nav.run}
-        </Link>
-      </nav>
-
-      <div className="knell-container relative z-10 flex flex-1 flex-col justify-center px-5 pb-section">
+        <div className="knell-container relative z-10 flex flex-1 flex-col justify-center px-5 pb-section">
         <ScreenIndex value={indices[0]} plated />
 
           <AnimatedRollText
@@ -77,7 +75,10 @@ export default function LandingPage() {
       </section>
 
       {/* Screen 2 — the two modes */}
-      <section className="px-5 py-section lg:py-band">
+      <section
+        id="modes"
+        className="scroll-mt-24 px-5 py-section lg:py-band"
+      >
         <div
           data-reveal
           className="knell-container relative z-10 flex min-h-[80vh] flex-col justify-center"
@@ -119,7 +120,10 @@ export default function LandingPage() {
       </section>
 
       {/* Screen 3 — the sweep */}
-      <section className="bg-surface border-t border-faint px-5 py-section lg:py-band">
+      <section
+        id="sweep"
+        className="scroll-mt-24 bg-surface border-t border-faint px-5 py-section lg:py-band"
+      >
         <div
           data-reveal
           className="knell-container relative z-10 flex min-h-[80vh] flex-col justify-center"
@@ -181,7 +185,10 @@ export default function LandingPage() {
       </section>
 
       {/* Screen 4 — the verdicts */}
-      <section className="px-5 py-section lg:py-band">
+      <section
+        id="verdicts"
+        className="scroll-mt-24 px-5 py-section lg:py-band"
+      >
         <div
           data-reveal
           className="knell-container relative z-10 flex min-h-[80vh] flex-col justify-center"
@@ -213,7 +220,10 @@ export default function LandingPage() {
       </section>
 
       {/* Screen 5 — the graveyard */}
-      <section className="bg-surface border-t border-faint px-5 py-section lg:py-band">
+      <section
+        id="graveyard"
+        className="scroll-mt-24 bg-surface border-t border-faint px-5 py-section lg:py-band"
+      >
         <div
           data-graveyard
           data-reveal
@@ -258,6 +268,7 @@ export default function LandingPage() {
       </footer>
 
       <LandingMotion />
-    </main>
+      </main>
+    </>
   );
 }
