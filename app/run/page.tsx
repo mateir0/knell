@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RunPage() {
   return (
     <main className="min-h-screen">
-      <div className="mx-auto max-w-[860px] px-5">
+      <div className="mx-auto max-w-6xl px-5">
         <nav className="flex items-center justify-between border-b border-faint py-lg">
           <Link
             href="/"
@@ -24,21 +24,57 @@ export default function RunPage() {
           </span>
         </nav>
 
-        <div className="pb-section pt-lg">
-          <div
-            aria-hidden="true"
-            className="mb-md h-[2px] w-16 bg-accent"
-          />
-          <h1 className="knell-display-lg text-display-lg uppercase text-ink">
-            {strings.run.title}
-          </h1>
-          <p className="mt-sm max-w-[54ch] text-body-md text-body">
-            {strings.run.subtitle}
-          </p>
+        <div className="items-start gap-xl pb-section pt-lg lg:grid lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div>
+            <div
+              aria-hidden="true"
+              className="mb-md h-[2px] w-16 bg-accent"
+            />
+            <h1 className="knell-display-lg text-display-lg uppercase text-ink">
+              {strings.run.title}
+            </h1>
+            <p className="mt-sm max-w-[54ch] text-body-md text-body">
+              {strings.run.subtitle}
+            </p>
 
-          <div className="mt-section">
-            <RunPanel />
+            <div className="mt-xl">
+              <RunPanel />
+            </div>
           </div>
+
+          <aside className="hidden sticky top-lg lg:block">
+            <div className="border border-faint bg-surface p-lg">
+              <h2 className="text-heading text-ink">
+                {strings.landing.sweep.claim}
+              </h2>
+              <p className="mt-sm text-body-sm text-body">
+                {strings.landing.sweep.body}
+              </p>
+              <div>
+                {strings.landing.sweep.checks.map((check, index) => (
+                  <div
+                    key={check.index}
+                    className={`flex gap-md py-md ${
+                      index > 0 ? "border-t border-faint" : ""
+                    }`}
+                  >
+                    <span className="pt-0.5 text-caption-sm text-accent">
+                      {check.index}
+                    </span>
+                    <div>
+                      <p className="text-body-md font-medium text-ink">
+                        {check.title}
+                      </p>
+                      <p className="text-body-sm text-body">{check.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="border-t border-faint pt-md text-body-xs text-muted">
+                {strings.run.resultsNote}
+              </p>
+            </div>
+          </aside>
         </div>
 
         <footer className="flex items-center justify-between border-t border-faint py-lg">

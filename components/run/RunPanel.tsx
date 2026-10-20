@@ -146,8 +146,8 @@ export function RunPanel() {
       </div>
 
       {mode === "hackathon" ? (
-        <form onSubmit={handleSubmit} className="mt-xl">
-          <div className="space-y-lg">
+        <form onSubmit={handleSubmit} className="mt-lg">
+          <div className="space-y-md">
             <div className="space-y-xs">
               <FieldLabel htmlFor="theme">
                 {strings.run.hackathon.theme.label}
@@ -197,15 +197,15 @@ export function RunPanel() {
             </div>
           </div>
 
-          <div className="mt-xl">
+          <div className="mt-lg">
             <Button type="submit" disabled={run.loading} className="w-full">
               {run.loading ? strings.run.submitting : strings.run.submit}
             </Button>
           </div>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-xl">
-          <div className="space-y-lg">
+        <form onSubmit={handleSubmit} className="mt-lg">
+          <div className="space-y-md">
             <div className="space-y-xs">
               <FieldLabel htmlFor="stack">{strings.run.app.stack.label}</FieldLabel>
               <Input
@@ -229,7 +229,7 @@ export function RunPanel() {
               />
             </div>
 
-            <div className="grid gap-lg sm:grid-cols-3">
+            <div className="grid gap-md sm:grid-cols-3">
               <div className="space-y-xs">
                 <FieldLabel htmlFor="app-time">{strings.run.app.time.label}</FieldLabel>
                 <Select
@@ -283,7 +283,7 @@ export function RunPanel() {
             </div>
           </div>
 
-          <div className="mt-xl">
+          <div className="mt-lg">
             <Button type="submit" disabled={run.loading} className="w-full">
               {run.loading ? strings.run.submitting : strings.run.submit}
             </Button>

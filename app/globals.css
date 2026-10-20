@@ -175,13 +175,13 @@
   /* design.md components.input + states.input-focus */
   .knell-field {
     width: 100%;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-faint);
-    border-radius: var(--radius-xs);
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
     padding-block: var(--spacing-sm);
     padding-inline: var(--spacing-md);
     font-family: var(--font-archivo);
-    font-size: var(--text-body-md);
+    font-size: var(--text-body-sm);
     color: var(--color-ink);
     line-height: 1.5;
   }

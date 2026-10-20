@@ -10,8 +10,9 @@ export function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="block text-caption-sm uppercase text-body"
+      className="flex items-center gap-xs text-caption-sm uppercase text-body"
     >
+      <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 bg-accent" />
       {children}
     </label>
   );
