@@ -22,6 +22,15 @@
   --color-dead: #e5484d;
   --color-alive: #3fa46a;
 
+  /* ---- animation ---- */
+  --animate-marquee: marquee 36s linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   /* ---- typography: Archivo only ---- */
   --font-archivo: var(--knell-archivo), "Archivo", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, sans-serif;

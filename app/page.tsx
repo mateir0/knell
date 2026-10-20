@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { AnimatedRollText } from "@/components/landing/AnimatedRollText";
 import { GrainGate } from "@/components/landing/GrainGate";
+import { Marquee } from "@/components/landing/Marquee";
 import { PillNav } from "@/components/landing/PillNav";
 import { MagneticButton } from "@/components/lightswind/magnetic-button";
 import { LandingMotion } from "@/components/landing/LandingMotion";
@@ -63,20 +64,51 @@ export default function LandingPage() {
             </MagneticButton>
           </div>
 
-          <ul className="mt-xl grid grid-cols-1 gap-y-xs border border-faint bg-canvas/80 px-md py-sm backdrop-blur-sm sm:grid-cols-3 sm:gap-x-lg">
-            {hero.ledger.map((item, index) => (
-              <li
-                key={item}
-                className={
-                  index > 0
-                    ? "border-t border-faint pt-xs text-caption-sm font-medium uppercase text-body sm:border-l sm:border-t-0 sm:pl-lg sm:pt-0"
-                    : "text-caption-sm font-medium uppercase text-body"
-                }
+          <div className="mt-xl border border-faint bg-canvas/80 px-md py-sm backdrop-blur-sm">
+            <ul className="sr-only">
+              {hero.ledger.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <div aria-hidden="true" className="motion-reduce:hidden">
+              <Marquee
+                durationSeconds={36}
+                className="[mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
               >
-                {item}
-              </li>
-            ))}
-          </ul>
+                {Array.from({ length: 4 }).flatMap((_, sequenceIndex) =>
+                  hero.ledger.map((item) => (
+                    <span
+                      key={`${sequenceIndex}-${item}`}
+                      className="flex items-center gap-md pr-xl text-caption-sm font-medium uppercase text-body"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-1.5 w-1.5 shrink-0 bg-accent"
+                      />
+                      {item}
+                    </span>
+                  )),
+                )}
+              </Marquee>
+            </div>
+            <ul
+              aria-hidden="true"
+              className="hidden motion-reduce:grid grid-cols-1 gap-y-xs sm:grid-cols-3 sm:gap-x-lg"
+            >
+              {hero.ledger.map((item, index) => (
+                <li
+                  key={item}
+                  className={
+                    index > 0
+                      ? "border-t border-faint pt-xs text-caption-sm font-medium uppercase text-body sm:border-l sm:border-t-0 sm:pl-lg sm:pt-0"
+                      : "text-caption-sm font-medium uppercase text-body"
+                  }
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
