@@ -17,6 +17,38 @@ export type Tombstone = {
   stamp: string;
 };
 
+export type PanelRow = {
+  label: string;
+  value: string;
+};
+
+export type Panel = {
+  title: string;
+  rows: readonly PanelRow[];
+};
+
+export type Check = {
+  index: string;
+  title: string;
+  body: string;
+};
+
+export type LegendItem = {
+  tone: "dead" | "zombie" | "demand" | "alive";
+  label: string;
+  definition: string;
+};
+
+export type Receipt = {
+  caption: string;
+  name: string;
+  killer: string;
+  cause: string;
+  stamp: string;
+  linkLabel: string;
+  linkHref: string;
+};
+
 export const strings = {
   meta: {
     title: "Knell — The bell that tolls for already-built ideas.",
@@ -31,27 +63,110 @@ export const strings = {
   },
 
   landing: {
+    indices: [
+      "01 / 05",
+      "02 / 05",
+      "03 / 05",
+      "04 / 05",
+      "05 / 05",
+    ] as const,
+
+    footer: {
+      wordmark: "KNELL",
+      caption: "KNELL — THE BELL THAT TOLLS FOR ALREADY-BUILT IDEAS.",
+    },
+
     hero: {
       wordmark: "KNELL",
-      line: "The bell that tolls for already-built ideas.",
-      emphasis: "The bell that tolls",
-      tail: "for already-built ideas.",
+      tagline: "THE BELL THAT TOLLS FOR ALREADY-BUILT IDEAS.",
       cta: "Ring the bell",
+      ledger: [
+        "50 IDEAS KILLED BY HAND",
+        "9 NAMES BURIED",
+        "3 CHECKS PER IDEA",
+      ] as const,
     },
     modes: {
       claim: "Bring a theme. Or bring yourself.",
       body:
         "Give Knell a hackathon theme and it will find ideas worth that theme. Or give it yourself — what you can build, what you know, how much time you have — and it will find something for you to build. Either way it starts by naming possibilities instead of writing code.",
+      panels: [
+        {
+          title: "Hackathon",
+          rows: [
+            { label: "You bring", value: "A theme" },
+            { label: "Knell returns", value: "8 candidates, vetted" },
+            { label: "For", value: "Weekends that count" },
+          ],
+        },
+        {
+          title: "Build an app",
+          rows: [
+            { label: "You bring", value: "Your stack + what you know" },
+            { label: "Knell returns", value: "Ideas at your crossing" },
+            { label: "For", value: "Developers with no idea" },
+          ],
+        },
+      ] satisfies readonly Panel[],
     },
     sweep: {
       claim: "We sweep the internet.",
       body:
         "Every candidate gets checked three ways: does this already exist, is anyone actually asking for it, and is the thing that already exists any good. Each answer comes with a link you can open.",
+      checks: [
+        {
+          index: "01",
+          title: "Existence",
+          body: "Does a real product already do this job, for this user?",
+        },
+        {
+          index: "02",
+          title: "Demand",
+          body: "Are people asking for it — wishes, complaints, one-star reviews.",
+        },
+        {
+          index: "03",
+          title: "Incumbent quality",
+          body: "If it exists: alive and loved, or abandoned. A zombie is an opening.",
+        },
+      ] satisfies readonly Check[],
+      receipt: {
+        caption: "A real receipt",
+        name: "Verdikt",
+        killer: "tryverdikt.app",
+        cause: "The name was taken by the competition.",
+        stamp: "Dead",
+        linkLabel: "tryverdikt.app",
+        linkHref: "https://tryverdikt.app",
+      } satisfies Receipt,
     },
     verdict: {
       claim: "The bell tolls, or it doesn't.",
       body:
         "Ideas that are already built are named dead, with the receipt that killed them. Ideas that survive come back ranked, with the evidence that kept them alive.",
+      legend: [
+        {
+          tone: "dead",
+          label: "Dead",
+          definition: "A real product already does this job.",
+        },
+        {
+          tone: "zombie",
+          label: "Zombie gap",
+          definition:
+            "It exists, but it's abandoned or weak. There's your opening.",
+        },
+        {
+          tone: "demand",
+          label: "No demand",
+          definition: "Nobody built it — and nobody is asking.",
+        },
+        {
+          tone: "alive",
+          label: "Alive",
+          definition: "Nothing real does it, and people are asking.",
+        },
+      ] satisfies readonly LegendItem[],
     },
     graveyard: {
       claim: "The graveyard so far.",
@@ -86,6 +201,30 @@ export const strings = {
           name: "ApplyOnce",
           killer: "a Chrome extension of the same name",
           cause: "The name and the idea were both taken.",
+          stamp: "Dead",
+        },
+        {
+          name: "Morta",
+          killer: "morta.io",
+          cause: "A UAE construction company got there first.",
+          stamp: "Dead",
+        },
+        {
+          name: "Vetta",
+          killer: "a recruitment AI",
+          cause: "The name works in hiring now.",
+          stamp: "Dead",
+        },
+        {
+          name: "Mortem",
+          killer: "the funeral-software crowd",
+          cause: "A search swamp, not a name.",
+          stamp: "Dead",
+        },
+        {
+          name: "Mortiq",
+          killer: "MOTIQ signage",
+          cause: "Trademarked, lit up, and taken.",
           stamp: "Dead",
         },
       ] satisfies readonly Tombstone[],
