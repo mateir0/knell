@@ -64,7 +64,7 @@ export default function LandingPage() {
             </MagneticButton>
           </div>
 
-          <div className="mt-xl border border-faint bg-canvas/80 px-md py-sm backdrop-blur-sm">
+          <div className="mt-xl border border-faint bg-canvas/80 px-md py-xs backdrop-blur-sm">
             <ul className="sr-only">
               {hero.ledger.map((item) => (
                 <li key={item}>{item}</li>
@@ -72,18 +72,18 @@ export default function LandingPage() {
             </ul>
             <div aria-hidden="true" className="motion-reduce:hidden">
               <Marquee
-                durationSeconds={36}
+                durationSeconds={30}
                 className="[mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
               >
                 {Array.from({ length: 4 }).flatMap((_, sequenceIndex) =>
                   hero.ledger.map((item) => (
                     <span
                       key={`${sequenceIndex}-${item}`}
-                      className="flex items-center gap-md pr-xl text-caption-sm font-medium uppercase text-body"
+                      className="flex items-center gap-sm pr-md text-[11px] font-medium uppercase leading-none text-body"
                     >
                       <span
                         aria-hidden="true"
-                        className="h-1.5 w-1.5 shrink-0 bg-accent"
+                        className="h-1 w-1 shrink-0 bg-accent"
                       />
                       {item}
                     </span>
