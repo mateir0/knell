@@ -30,10 +30,10 @@ export function GrainGate() {
         variant="solar"
         speed={0.35}
         intensity={0.7}
-        grainAmount={0.15}
+        grainAmount={0.25}
         contrast={1.05}
         vignetteStrength={0.35}
-        opacity={0.6}
+        opacity={0.85}
         interactive={false}
       />
     </div>

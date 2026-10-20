@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { GrainGate } from "@/components/landing/GrainGate";
 import { LandingMotion } from "@/components/landing/LandingMotion";
@@ -46,14 +47,12 @@ export default function LandingPage() {
 
           <p className="mt-xl max-w-[32ch] knell-display-lg text-display-lg uppercase text-ink">
             {heroWords.map((word, index) => (
-              <span
-                key={`${word}-${index}`}
-                data-hero-word
-                className="inline-block"
-              >
-                {word}
-                {index < heroWords.length - 1 ? " " : ""}
-              </span>
+              <Fragment key={`${word}-${index}`}>
+                <span data-hero-word className="inline-block">
+                  {word}
+                </span>
+                {index < heroWords.length - 1 ? " " : null}
+              </Fragment>
             ))}
           </p>
 
