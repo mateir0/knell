@@ -507,8 +507,11 @@ export function AnimatedGrain({
     if (!interactive) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const x = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
-      const y = 1.0 - Math.max(0, Math.min(1, e.clientY / window.innerHeight));
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const y = 1.0 - Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
       mouseRef.current.targetX = x;
       mouseRef.current.targetY = y;
     };

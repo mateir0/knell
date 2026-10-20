@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { AnimatedGrain } from "@/components/lightswind/animated-grain";
 
 /**
- * Landing-only background texture: the Lightswind Animated Grain component in
- * its solar variant, retuned to the system's bronze palette. It sits behind
- * every screen as a fixed, full-viewport layer and never takes pointer events.
+ * Hero-only background texture: the Lightswind Animated Grain component in
+ * its solar variant, retuned to the system's bronze palette. It is mounted as
+ * the first child of the hero section and fills exactly that section,
+ * scrolling away with it; screens below show the plain canvas color. It never
+ * takes pointer events.
  *
  * It renders for every visitor regardless of reduced-motion settings. If WebGL
  * cannot be created on the visitor's machine, a static fallback built from the
- * design tokens takes its place so the landing never ships an empty canvas.
+ * design tokens takes its place so the hero never ships an empty canvas.
  */
 export function GrainGate() {
   const [webglAvailable, setWebglAvailable] = useState<boolean | null>(null);
@@ -26,7 +28,7 @@ export function GrainGate() {
     return (
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0"
         style={{
           backgroundColor: "var(--color-canvas)",
           backgroundImage: [
@@ -41,7 +43,7 @@ export function GrainGate() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0"
+      className="pointer-events-none absolute inset-0 z-0"
     >
       <AnimatedGrain
         variant="solar"

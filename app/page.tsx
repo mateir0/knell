@@ -15,10 +15,9 @@ export default function LandingPage() {
 
   return (
     <main className="relative z-10">
-      <GrainGate />
-
       {/* Screen 1 — KNELL */}
       <section className="relative isolate flex min-h-screen flex-col overflow-hidden">
+        <GrainGate />
         <div
           className="knell-hero-glow pointer-events-none absolute inset-0"
           aria-hidden="true"
