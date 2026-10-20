@@ -209,7 +209,7 @@ export function RunPanel() {
               />
             </div>
 
-            <div className="space-y-xs sm:max-w-xs">
+            <div className="space-y-xs sm:max-w-[320px]">
               <FieldLabel htmlFor="hackathon-time">
                 {strings.run.hackathon.time.label}
               </FieldLabel>
