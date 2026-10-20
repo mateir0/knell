@@ -123,10 +123,10 @@ export function RunPanel() {
           <MagneticButton
             href="/"
             variant="ghost"
-            size="sm"
+            size="md"
             strength={0.35}
             radius={80}
-            className="border-border bg-surface/60 text-button uppercase text-ink backdrop-blur-sm hover:border-accent hover:text-accent"
+            className="whitespace-nowrap border-accent/40 bg-surface/60 px-5 text-button uppercase text-ink backdrop-blur-sm hover:border-accent hover:text-accent"
           >
             {strings.nav.home}
           </MagneticButton>
