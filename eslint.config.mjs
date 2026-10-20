@@ -18,6 +18,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "components/lightswind/animated-flow.tsx",
     ],
   },
 ];
