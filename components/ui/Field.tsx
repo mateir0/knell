@@ -1,4 +1,6 @@
-import type { ComponentProps, ReactNode } from "react";
+"use client";
+
+import { useEffect, useRef, type ComponentProps, type ReactNode } from "react";
 
 export function FieldLabel({
   children,
@@ -31,9 +33,34 @@ export function Input({
 
 export function Textarea({
   className = "",
+  value,
   ...rest
-}: ComponentProps<"textarea">) {
-  return <textarea className={`knell-field ${className}`} {...rest} />;
+}: Omit<ComponentProps<"textarea">, "rows">) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const element = textareaRef.current;
+    if (!element) return;
+
+    const resize = () => {
+      element.style.height = "auto";
+      element.style.height = `${Math.min(element.scrollHeight, 164)}px`;
+      element.style.overflowY = element.scrollHeight > 164 ? "auto" : "hidden";
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      className={`knell-field ${className}`}
+      value={value}
+      {...rest}
+    />
+  );
 }
 
 export function Select({

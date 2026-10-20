@@ -189,7 +189,6 @@ export function RunPanel() {
               <Textarea
                 id="theme"
                 name="theme"
-                rows={3}
                 required
                 value={theme}
                 placeholder={strings.run.hackathon.theme.placeholder}
@@ -204,7 +203,6 @@ export function RunPanel() {
               <Textarea
                 id="about"
                 name="about"
-                rows={3}
                 value={about}
                 placeholder={strings.run.hackathon.about.placeholder}
                 onChange={(event) => setAbout(event.target.value)}
@@ -256,7 +254,6 @@ export function RunPanel() {
               <Textarea
                 id="knows"
                 name="knows"
-                rows={3}
                 value={knows}
                 placeholder={strings.run.app.knows.placeholder}
                 onChange={(event) => setKnows(event.target.value)}
