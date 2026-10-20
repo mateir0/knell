@@ -119,7 +119,7 @@ export function RunPanel() {
     <div>
       <div>
         <div
-          className="inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1"
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/80 p-1 backdrop-blur-sm"
           role="group"
           aria-label={strings.run.modes.hackathon}
         >
@@ -292,7 +292,7 @@ export function RunPanel() {
       )}
 
       {run.error ? (
-        <p className="mt-lg rounded-xs border border-accent bg-surface p-md text-body-md text-ink">
+        <p className="mt-lg rounded-xs border border-accent bg-surface/80 p-md text-body-md text-ink backdrop-blur-sm">
           {run.error}
         </p>
       ) : null}

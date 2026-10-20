@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GrainGate } from "@/components/landing/GrainGate";
 import { RunPanel } from "@/components/run/RunPanel";
 import { strings } from "@/lib/strings";
 
@@ -10,8 +11,9 @@ export const metadata: Metadata = {
 
 export default function RunPage() {
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-6xl px-5">
+    <main className="relative min-h-screen">
+      <GrainGate />
+      <div className="relative z-10 mx-auto max-w-6xl px-5">
         <nav className="flex items-center justify-between border-b border-faint py-lg">
           <Link
             href="/"
@@ -43,7 +45,7 @@ export default function RunPage() {
           </div>
 
           <aside className="hidden sticky top-lg lg:block">
-            <div className="border border-faint bg-surface p-lg">
+            <div className="border border-faint bg-surface/80 p-lg backdrop-blur-sm">
               <h2 className="text-heading text-ink">
                 {strings.landing.sweep.claim}
               </h2>
