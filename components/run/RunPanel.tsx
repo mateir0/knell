@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, Input, Select, Textarea } from "@/components/ui/Field";
 import { CandidateCard } from "@/components/run/CandidateCard";
 import { MagneticButton } from "@/components/lightswind/magnetic-button";
 import { strings } from "@/lib/strings";
 import type { Candidate } from "@/lib/schema";
+import type { CheckResult, VerdictKind } from "@/lib/verdict";
 
 type Mode = "hackathon" | "app";
 
@@ -16,7 +17,20 @@ type RunState = {
   loading: boolean;
 };
 
+type SweepState = {
+  status: "idle" | "checking" | "done";
+  result: CheckResult | null;
+};
+
 const emptyRun: RunState = { candidates: null, error: null, loading: false };
+
+const survivorOrder: Record<VerdictKind, number> = {
+  alive: 0,
+  zombie_gap: 1,
+  no_demand: 2,
+  dead: 3,
+  could_not_check: 4,
+};
 
 export function RunPanel() {
   const [mode, setMode] = useState<Mode>("hackathon");
@@ -34,10 +48,84 @@ export function RunPanel() {
   const [hackathonRun, setHackathonRun] = useState<RunState>(emptyRun);
   const [appRun, setAppRun] = useState<RunState>(emptyRun);
 
+  const [sweep, setSweep] = useState<Record<string, SweepState>>({});
+  const [sweeping, setSweeping] = useState(false);
+  const [checkedCount, setCheckedCount] = useState(0);
+
   const run = mode === "hackathon" ? hackathonRun : appRun;
   const setRun = mode === "hackathon" ? setHackathonRun : setAppRun;
 
+  async function checkOne(candidate: Candidate): Promise<CheckResult> {
+    try {
+      const response = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidate }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (
+        data &&
+        typeof data === "object" &&
+        "verdict" in data &&
+        typeof (data as { verdict?: unknown }).verdict === "string"
+      ) {
+        return data as CheckResult;
+      }
+    } catch {
+      return {
+        verdict: "could_not_check",
+        headline: strings.errors.generic,
+        killerName: null,
+        killerUrl: null,
+        receiptUrls: [],
+      };
+    }
+    return {
+      verdict: "could_not_check",
+      headline: strings.errors.generic,
+      killerName: null,
+      killerUrl: null,
+      receiptUrls: [],
+    };
+  }
+
+  async function runSweep() {
+    if (sweeping || !run.candidates || run.candidates.length === 0) return;
+    setSweeping(true);
+    setCheckedCount(0);
+    for (const candidate of run.candidates) {
+      setSweep((prev) => ({
+        ...prev,
+        [candidate.name]: { status: "checking", result: null },
+      }));
+      const result = await checkOne(candidate);
+      setSweep((prev) => ({
+        ...prev,
+        [candidate.name]: { status: "done", result },
+      }));
+      setCheckedCount((prev) => prev + 1);
+    }
+    setSweeping(false);
+  }
+
+  async function retryCheck(candidate: Candidate) {
+    if (sweeping) return;
+    setSweeping(true);
+    setSweep((prev) => ({
+      ...prev,
+      [candidate.name]: { status: "checking", result: null },
+    }));
+    const result = await checkOne(candidate);
+    setSweep((prev) => ({
+      ...prev,
+      [candidate.name]: { status: "done", result },
+    }));
+    setSweeping(false);
+  }
+
   async function request(payload: unknown) {
+    setSweep({});
+    setCheckedCount(0);
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -115,6 +203,34 @@ export function RunPanel() {
       ...(platform ? { platform } : {}),
     });
   }
+
+  const candidates = useMemo(() => run.candidates ?? [], [run.candidates]);
+  const allChecked =
+    candidates.length > 0 &&
+    candidates.every(
+      (candidate) => sweep[candidate.name]?.status === "done",
+    );
+  const sweepFinished = allChecked && !sweeping;
+
+  const displayCandidates = useMemo(() => {
+    if (!sweepFinished) return candidates;
+    return [...candidates].sort((a, b) => {
+      const verdictA = sweep[a.name]?.result?.verdict ?? null;
+      const verdictB = sweep[b.name]?.result?.verdict ?? null;
+      const rankA = verdictA ? survivorOrder[verdictA] : survivorOrder.could_not_check + 1;
+      const rankB = verdictB ? survivorOrder[verdictB] : survivorOrder.could_not_check + 1;
+      return rankA - rankB;
+    });
+  }, [sweepFinished, candidates, sweep]);
+
+  const survivorCount = useMemo(
+    () =>
+      candidates.filter((candidate) => {
+        const verdict = sweep[candidate.name]?.result?.verdict;
+        return verdict === "alive" || verdict === "zombie_gap";
+      }).length,
+    [candidates, sweep],
+  );
 
   return (
     <div>
@@ -328,17 +444,42 @@ export function RunPanel() {
         </p>
       ) : null}
 
-      {run.candidates && run.candidates.length > 0 ? (
+      {candidates.length > 0 ? (
         <section className="mt-section">
           <p className="text-body-md text-body">{strings.run.resultsNote}</p>
           <h2 className="mt-sm text-caption-sm uppercase text-accent">
-            {strings.run.resultsTitle}
+            {sweepFinished && survivorCount > 0
+              ? strings.run.sweep.survivorsTitle
+              : strings.run.resultsTitle}
           </h2>
+          <div className="mt-md flex flex-wrap items-center gap-md">
+            <Button onClick={runSweep} disabled={sweeping}>
+              {strings.run.sweep.start}
+            </Button>
+            {sweeping ? (
+              <p className="text-body-xs text-muted">
+                {strings.run.sweep.progressPrefix} {checkedCount}{" "}
+                {strings.run.sweep.progressOf} {candidates.length}
+              </p>
+            ) : null}
+          </div>
           <div className="mt-md grid gap-md sm:grid-cols-2">
-            {run.candidates.map((candidate) => (
-              <CandidateCard key={candidate.name} candidate={candidate} />
+            {displayCandidates.map((candidate) => (
+              <CandidateCard
+                key={candidate.name}
+                candidate={candidate}
+                status={sweep[candidate.name]?.status ?? "idle"}
+                result={sweep[candidate.name]?.result ?? null}
+                onRetry={() => retryCheck(candidate)}
+                sweepRunning={sweeping}
+              />
             ))}
           </div>
+          {sweepFinished && survivorCount === 0 ? (
+            <p className="mt-md text-body-md text-body">
+              {strings.run.sweep.noneSurvived}
+            </p>
+          ) : null}
         </section>
       ) : null}
         </div>

@@ -323,6 +323,25 @@ export const strings = {
       workItRemoves: "The work it removes",
       buildShape: "Build shape",
     },
+    sweep: {
+      start: "Run the sweep",
+      checking: ["Sweeping the web…", "Reading the evidence…", "The judge is deciding…"],
+      progressPrefix: "Checked",
+      progressOf: "of",
+      survivorsTitle: "Still standing",
+      noneSurvived: "Nothing survived. The bell did its job.",
+      retry: "Check again",
+      killedBy: "Killed by",
+      cause: "Cause of death",
+      opening: "The opening",
+    },
+    verdicts: {
+      dead: "Dead",
+      noDemand: "No demand",
+      zombieGap: "Zombie gap",
+      alive: "Alive",
+      couldNotCheck: "Could not check",
+    },
   },
 
   errors: {
@@ -332,6 +351,12 @@ export const strings = {
       "The model did not return usable candidates. Nothing was invented — try again.",
     invalidIntake: "That intake was not understood. Fill the form again.",
     generic: "Something went wrong. Nothing was invented — try again.",
+    searchNotConfigured:
+      "Search is not configured — set SERPAPI_API_KEY to run the sweep.",
+    searchExhausted:
+      "The search budget is exhausted for now — the sweep cannot run.",
+    judgeNoProof:
+      "The judge gave no proof for that verdict — treat this one as unchecked.",
     title: "Not a candidate list.",
   },
 

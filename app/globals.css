@@ -285,3 +285,19 @@
     font-size: 200px;
   }
 }
+
+@keyframes knell-stamp {
+  from {
+    transform: scale(1.7) rotate(-14deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(-4deg);
+    opacity: 1;
+  }
+}
+
+.knell-stamp-in {
+  animation: knell-stamp 180ms ease-out both;
+  transform: rotate(-4deg);
+}
