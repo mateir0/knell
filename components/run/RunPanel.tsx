@@ -17,12 +17,6 @@ type RunState = {
 
 const emptyRun: RunState = { candidates: null, error: null, loading: false };
 
-const modeButtonBase =
-  "h-[41px] rounded-xs border px-[45px] text-button uppercase transition-colors duration-150 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent";
-
-const modeButtonIdle = "border-faint text-ink hover:border-accent hover:text-accent";
-const modeButtonActive = "border-accent text-accent";
-
 export function RunPanel() {
   const [mode, setMode] = useState<Mode>("hackathon");
 
@@ -123,26 +117,36 @@ export function RunPanel() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-xs" role="group" aria-label={strings.run.modes.hackathon}>
-        {(["hackathon", "app"] as const).map((option) => {
-          const active = mode === option;
-          return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setMode(option)}
-              aria-pressed={active}
-              className={`${modeButtonBase} ${active ? modeButtonActive : modeButtonIdle}`}
-            >
-              {option === "hackathon" ? strings.run.modes.hackathon : strings.run.modes.app}
-            </button>
-          );
-        })}
-        <span className="text-body-xs text-muted">{strings.run.switchHint}</span>
+      <div>
+        <div
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1"
+          role="group"
+          aria-label={strings.run.modes.hackathon}
+        >
+          {(["hackathon", "app"] as const).map((option) => {
+            const active = mode === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setMode(option)}
+                aria-pressed={active}
+                className={`rounded-full border border-transparent px-5 py-2 text-button uppercase transition-colors duration-150 ${
+                  active ? "bg-accent/10 text-accent border-accent/60" : "text-body hover:text-ink"
+                }`}
+              >
+                {option === "hackathon" ? strings.run.modes.hackathon : strings.run.modes.app}
+              </button>
+            );
+          })}
+        </div>
+        <span className="mt-xs block text-body-xs text-muted">
+          {strings.run.switchHint}
+        </span>
       </div>
 
       {mode === "hackathon" ? (
-        <form onSubmit={handleSubmit} className="mt-xl max-w-[720px]">
+        <form onSubmit={handleSubmit} className="mt-xl">
           <div className="space-y-lg">
             <div className="space-y-xs">
               <FieldLabel htmlFor="theme">
@@ -151,7 +155,7 @@ export function RunPanel() {
               <Textarea
                 id="theme"
                 name="theme"
-                rows={4}
+                rows={3}
                 required
                 value={theme}
                 placeholder={strings.run.hackathon.theme.placeholder}
@@ -173,7 +177,7 @@ export function RunPanel() {
               />
             </div>
 
-            <div className="space-y-xs">
+            <div className="space-y-xs sm:max-w-xs">
               <FieldLabel htmlFor="hackathon-time">
                 {strings.run.hackathon.time.label}
               </FieldLabel>
@@ -194,13 +198,13 @@ export function RunPanel() {
           </div>
 
           <div className="mt-xl">
-            <Button type="submit" disabled={run.loading}>
+            <Button type="submit" disabled={run.loading} className="w-full">
               {run.loading ? strings.run.submitting : strings.run.submit}
             </Button>
           </div>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-xl max-w-[720px]">
+        <form onSubmit={handleSubmit} className="mt-xl">
           <div className="space-y-lg">
             <div className="space-y-xs">
               <FieldLabel htmlFor="stack">{strings.run.app.stack.label}</FieldLabel>
@@ -218,67 +222,69 @@ export function RunPanel() {
               <Textarea
                 id="knows"
                 name="knows"
-                rows={4}
+                rows={3}
                 value={knows}
                 placeholder={strings.run.app.knows.placeholder}
                 onChange={(event) => setKnows(event.target.value)}
               />
             </div>
 
-            <div className="space-y-xs">
-              <FieldLabel htmlFor="app-time">{strings.run.app.time.label}</FieldLabel>
-              <Select
-                id="app-time"
-                name="time"
-                value={appTime}
-                onChange={(event) => setAppTime(event.target.value)}
-              >
-                <option value="">{strings.run.notChosen}</option>
-                {strings.run.app.time.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            <div className="grid gap-lg sm:grid-cols-3">
+              <div className="space-y-xs">
+                <FieldLabel htmlFor="app-time">{strings.run.app.time.label}</FieldLabel>
+                <Select
+                  id="app-time"
+                  name="time"
+                  value={appTime}
+                  onChange={(event) => setAppTime(event.target.value)}
+                >
+                  <option value="">{strings.run.notChosen}</option>
+                  {strings.run.app.time.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
 
-            <div className="space-y-xs">
-              <FieldLabel htmlFor="goal">{strings.run.app.goal.label}</FieldLabel>
-              <Select
-                id="goal"
-                name="goal"
-                value={goal}
-                onChange={(event) => setGoal(event.target.value)}
-              >
-                <option value="">{strings.run.notChosen}</option>
-                {strings.run.app.goal.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
+              <div className="space-y-xs">
+                <FieldLabel htmlFor="goal">{strings.run.app.goal.label}</FieldLabel>
+                <Select
+                  id="goal"
+                  name="goal"
+                  value={goal}
+                  onChange={(event) => setGoal(event.target.value)}
+                >
+                  <option value="">{strings.run.notChosen}</option>
+                  {strings.run.app.goal.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
 
-            <div className="space-y-xs">
-              <FieldLabel htmlFor="platform">{strings.run.app.platform.label}</FieldLabel>
-              <Select
-                id="platform"
-                name="platform"
-                value={platform}
-                onChange={(event) => setPlatform(event.target.value)}
-              >
-                <option value="">{strings.run.notChosen}</option>
-                {strings.run.app.platform.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
+              <div className="space-y-xs">
+                <FieldLabel htmlFor="platform">{strings.run.app.platform.label}</FieldLabel>
+                <Select
+                  id="platform"
+                  name="platform"
+                  value={platform}
+                  onChange={(event) => setPlatform(event.target.value)}
+                >
+                  <option value="">{strings.run.notChosen}</option>
+                  {strings.run.app.platform.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
           </div>
 
           <div className="mt-xl">
-            <Button type="submit" disabled={run.loading}>
+            <Button type="submit" disabled={run.loading} className="w-full">
               {run.loading ? strings.run.submitting : strings.run.submit}
             </Button>
           </div>
@@ -286,7 +292,7 @@ export function RunPanel() {
       )}
 
       {run.error ? (
-        <p className="mt-lg border border-accent bg-surface p-md text-body-md text-ink">
+        <p className="mt-lg rounded-xs border border-accent bg-surface p-md text-body-md text-ink">
           {run.error}
         </p>
       ) : null}
@@ -294,10 +300,10 @@ export function RunPanel() {
       {run.candidates && run.candidates.length > 0 ? (
         <section className="mt-section">
           <p className="text-body-md text-body">{strings.run.resultsNote}</p>
-          <h2 className="mt-sm text-caption-sm uppercase text-muted">
+          <h2 className="mt-sm text-caption-sm uppercase text-accent">
             {strings.run.resultsTitle}
           </h2>
-          <div className="mt-md grid gap-md lg:grid-cols-2 min-[1440px]:grid-cols-3">
+          <div className="mt-md grid gap-md sm:grid-cols-2">
             {run.candidates.map((candidate) => (
               <CandidateCard key={candidate.name} candidate={candidate} />
             ))}

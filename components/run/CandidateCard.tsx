@@ -4,7 +4,7 @@ import type { Candidate } from "@/lib/schema";
 
 export function CandidateCard({ candidate }: { candidate: Candidate }) {
   return (
-    <article className="relative border border-faint bg-surface p-xl">
+    <article className="relative border border-faint bg-surface p-xl transition-colors duration-150 hover:border-accent/50">
       <div className="absolute right-xl top-xl">
         <UncheckedBadge label={strings.badges.unchecked} />
       </div>

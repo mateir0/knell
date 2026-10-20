@@ -10,7 +10,7 @@ export function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="block text-caption-sm uppercase text-muted"
+      className="block text-caption-sm uppercase text-body"
     >
       {children}
     </label>
