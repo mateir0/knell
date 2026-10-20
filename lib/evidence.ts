@@ -107,10 +107,16 @@ export async function buildEvidence(
   candidate: Candidate,
   queries: EvidencePack["queries"],
 ): Promise<EvidencePack> {
+  const slots = await Promise.all([
+    searchSlot(queries.existence),
+    searchSlot(queries.demand),
+    searchSlot(queries.incumbent),
+  ]);
+
   const results = {
-    existence: (await searchSlot(queries.existence)) ?? [],
-    demand: (await searchSlot(queries.demand)) ?? [],
-    incumbent: (await searchSlot(queries.incumbent)) ?? [],
+    existence: slots[0] ?? [],
+    demand: slots[1] ?? [],
+    incumbent: slots[2] ?? [],
   };
 
   const fetched = new Set<string>();
@@ -126,13 +132,13 @@ export async function buildEvidence(
   collect(results.existence, 2);
   collect(results.demand, 1);
 
-  const excerpts: EvidencePack["excerpts"] = [];
-  for (const url of targets.slice(0, 3)) {
-    const text = await fetchExcerpt(url);
-    if (text) {
-      excerpts.push({ url, text });
-    }
-  }
+  const fetchedExcerpts = await Promise.all(
+    targets.slice(0, 3).map((url) => fetchExcerpt(url)),
+  );
+
+  const excerpts: EvidencePack["excerpts"] = fetchedExcerpts.flatMap(
+    (text, index) => (text ? [{ url: targets[index], text }] : []),
+  );
 
   return { queries, results, excerpts };
 }

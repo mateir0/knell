@@ -13,6 +13,7 @@ export const JUDGE_MODEL = process.env.JUDGE_MODEL || LLM_MODEL;
 export const JUDGE_API_KEY = process.env.JUDGE_API_KEY || LLM_API_KEY;
 
 const REQUEST_TIMEOUT_MS = 90_000;
+const WRITER_TIMEOUT_MS = 20_000;
 
 type ChatMessage = {
   role: "system" | "user";
@@ -70,6 +71,7 @@ async function chatSlot(
   apiKey: string,
   temperature: number,
   messages: ChatMessage[],
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<string> {
   const endpoint = `${baseUrl.replace(/\/+$/, "")}/chat/completions`;
 
@@ -88,7 +90,7 @@ async function chatSlot(
         stream: false,
       }),
       cache: "no-store",
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     throw new ModelUnreachableError(
@@ -157,20 +159,35 @@ async function askSlot(
     model: string;
     apiKey: string;
     temperature: number;
+    timeoutMs: number;
   },
 ): Promise<Record<string, unknown>> {
-  const first = await chatSlot(slot.baseUrl, slot.model, slot.apiKey, slot.temperature, [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userPrompt },
-  ]);
+  const first = await chatSlot(
+    slot.baseUrl,
+    slot.model,
+    slot.apiKey,
+    slot.temperature,
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    slot.timeoutMs,
+  );
 
   const parsed = parseJsonObject(first);
   if (parsed) return parsed;
 
-  const second = await chatSlot(slot.baseUrl, slot.model, slot.apiKey, slot.temperature, [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: `${userPrompt}${STRICT_SUFFIX}` },
-  ]);
+  const second = await chatSlot(
+    slot.baseUrl,
+    slot.model,
+    slot.apiKey,
+    slot.temperature,
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `${userPrompt}${STRICT_SUFFIX}` },
+    ],
+    slot.timeoutMs,
+  );
 
   const retried = parseJsonObject(second);
   if (retried) return retried;
@@ -181,28 +198,47 @@ async function askSlot(
 export async function writeQueries(
   candidate: Candidate,
 ): Promise<EvidencePack["queries"]> {
-  const parsed = await askSlot(
-    QUERY_SYSTEM_PROMPT,
-    userBrief(candidate),
-    {
-      baseUrl: LLM_BASE_URL,
-      model: LLM_MODEL,
-      apiKey: LLM_API_KEY,
-      temperature: 0.9,
-    },
-  );
+  try {
+    const reply = await chatSlot(
+      LLM_BASE_URL,
+      LLM_MODEL,
+      LLM_API_KEY,
+      0.9,
+      [
+        { role: "system", content: QUERY_SYSTEM_PROMPT },
+        { role: "user", content: userBrief(candidate) },
+      ],
+      WRITER_TIMEOUT_MS,
+    );
 
-  const existence =
-    typeof parsed.existence === "string" ? parsed.existence.trim() : "";
-  const demand = typeof parsed.demand === "string" ? parsed.demand.trim() : "";
-  const incumbent =
-    typeof parsed.incumbent === "string" ? parsed.incumbent.trim() : "";
+    const parsed = parseJsonObject(reply);
+    if (parsed) {
+      const existence =
+        typeof parsed.existence === "string" ? parsed.existence.trim() : "";
+      const demand =
+        typeof parsed.demand === "string" ? parsed.demand.trim() : "";
+      const incumbent =
+        typeof parsed.incumbent === "string" ? parsed.incumbent.trim() : "";
 
-  if (existence === "" || demand === "" || incumbent === "") {
-    throw new ModelOutputError("the writer did not return three search queries");
+      if (existence !== "" && demand !== "" && incumbent !== "") {
+        return { existence, demand, incumbent };
+      }
+    }
+  } catch {
+    return templateQueries(candidate);
   }
 
-  return { existence, demand, incumbent };
+  return templateQueries(candidate);
+}
+
+function templateQueries(
+  candidate: Candidate,
+): EvidencePack["queries"] {
+  return {
+    existence: `${candidate.name} ${candidate.oneLiner}`,
+    demand: `${candidate.whoItsFor} ${candidate.workItRemoves} app OR tool`,
+    incumbent: `best app for ${candidate.workItRemoves}`,
+  };
 }
 
 const VERDICT_KINDS: VerdictKind[] = [
@@ -252,6 +288,7 @@ ${pack.excerpts.map((excerpt) => `SOURCE: ${excerpt.url}\n${excerpt.text}`).join
       model: JUDGE_MODEL,
       apiKey: JUDGE_API_KEY,
       temperature: 0.2,
+      timeoutMs: REQUEST_TIMEOUT_MS,
     },
   );
 

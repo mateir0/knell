@@ -72,13 +72,13 @@ export function CandidateCard({
         {status === "checking" ? (
           <span
             aria-live="polite"
-            className="inline-flex h-[30px] items-center rounded-xs border border-accent px-[10px] text-caption-sm uppercase text-accent animate-pulse"
+            className="inline-flex h-[30px] whitespace-nowrap items-center rounded-xs border border-accent px-[10px] text-caption-sm uppercase text-accent animate-pulse"
           >
             {checkingLabel}
           </span>
         ) : status === "done" && result ? (
           <span
-            className={`knell-stamp-in inline-flex items-center rounded-xs border-2 px-3 py-1 text-heading font-black uppercase ${STAMP_COLORS[result.verdict]}`}
+            className={`knell-stamp-in inline-flex items-center rounded-xs border-2 px-3 py-1 whitespace-nowrap text-body-sm font-black uppercase ${STAMP_COLORS[result.verdict]}`}
           >
             {VERDICT_LABELS[result.verdict]}
           </span>
@@ -87,7 +87,7 @@ export function CandidateCard({
         )}
       </div>
 
-      <h3 className="pr-[140px] text-heading uppercase text-ink break-words">
+      <h3 className="pr-[190px] text-heading uppercase text-ink break-words">
         {candidate.name}
       </h3>
       <p className="mt-xs text-body-md text-body">{candidate.oneLiner}</p>
