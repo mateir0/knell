@@ -64,7 +64,7 @@ export default function LandingPage() {
             </MagneticButton>
           </div>
 
-          <div className="mt-xl border border-faint bg-canvas/80 px-md py-xs backdrop-blur-sm">
+          <div className="mx-auto mt-xl w-full max-w-3xl border border-faint bg-canvas/80 px-md py-xs backdrop-blur-sm">
             <ul className="sr-only">
               {hero.ledger.map((item) => (
                 <li key={item}>{item}</li>
