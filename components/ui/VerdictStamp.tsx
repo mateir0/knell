@@ -10,13 +10,15 @@ const tones: Record<VerdictTone, string> = {
 export function VerdictStamp({
   tone,
   label,
+  className,
 }: {
   tone: VerdictTone;
   label: string;
+  className?: string;
 }) {
   return (
     <span
-      className={`inline-block border-2 px-[14px] py-[6px] text-stamp uppercase -rotate-4 ${tones[tone]}`}
+      className={`inline-block border-2 px-[14px] py-[6px] text-stamp uppercase -rotate-4 transition-transform ${tones[tone]}${className ? ` ${className}` : ""}`}
     >
       {label}
     </span>

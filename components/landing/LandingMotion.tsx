@@ -65,6 +65,18 @@ export function LandingMotion() {
           });
         });
 
+        gsap.utils
+          .toArray<HTMLElement>("[data-section-rule]")
+          .forEach((rule) => {
+            gsap.from(rule, {
+              scaleX: 0,
+              transformOrigin: "left",
+              duration: 0.8,
+              ease: "power2.out",
+              scrollTrigger: { trigger: rule, start: "top 80%" },
+            });
+          });
+
         const graveyard = document.querySelector<HTMLElement>("[data-graveyard]");
         if (graveyard) {
           gsap.from(graveyard, {
