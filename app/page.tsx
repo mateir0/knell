@@ -2,10 +2,10 @@ import { Fragment } from "react";
 import { AnimatedRollText } from "@/components/landing/AnimatedRollText";
 import { GrainGate } from "@/components/landing/GrainGate";
 import { PillNav } from "@/components/landing/PillNav";
+import { MagneticButton } from "@/components/lightswind/magnetic-button";
 import { LandingMotion } from "@/components/landing/LandingMotion";
 import { ScreenIndex } from "@/components/landing/ScreenIndex";
 import { SectionHeader } from "@/components/landing/SectionHeader";
-import { ButtonLink } from "@/components/ui/Button";
 import { TombstoneCard } from "@/components/ui/TombstoneCard";
 import { VerdictStamp } from "@/components/ui/VerdictStamp";
 import { strings } from "@/lib/strings";
@@ -51,7 +51,16 @@ export default function LandingPage() {
           </p>
 
           <div data-hero-cta className="mt-xl">
-            <ButtonLink href="/run">{hero.cta}</ButtonLink>
+            <MagneticButton
+              href="/run"
+              variant="ghost"
+              size="lg"
+              strength={0.35}
+              radius={90}
+              className="h-[41px] rounded-xs bg-accent px-[45px] text-button uppercase text-on-accent hover:bg-accent-bright"
+            >
+              {hero.cta}
+            </MagneticButton>
           </div>
 
           <ul className="mt-xl grid grid-cols-1 gap-y-xs border border-faint bg-canvas/80 px-md py-sm backdrop-blur-sm sm:grid-cols-3 sm:gap-x-lg">
