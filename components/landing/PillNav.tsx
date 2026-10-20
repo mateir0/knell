@@ -53,7 +53,7 @@ function RingCta({
       <div className="rounded-full border border-black bg-[linear-gradient(180deg,rgba(60,60,60,0.8),rgba(20,20,20,0.9))] p-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.08)]">
         <Link
           href={href}
-          className={`relative flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(180deg,var(--color-accent-bright),var(--color-accent))] px-6 py-2.5 text-sm font-semibold text-on-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] ${
+          className={`relative flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(180deg,var(--color-accent-bright),var(--color-accent))] px-5 py-2 text-xs font-semibold uppercase text-on-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] ${
             fullWidth ? "w-full" : ""
           }`}
         >
@@ -101,18 +101,18 @@ export function PillNav({ wordmark, items, ctaLabel, ctaHref }: PillNavProps) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-6 sm:px-6">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between">
-        <div className="flex w-[140px] shrink-0 items-center gap-2">
+        <div className="flex w-[120px] shrink-0 items-center gap-2">
           <span aria-hidden="true" className="h-2 w-2 bg-accent" />
-          <span className="text-base font-black uppercase tracking-tight text-ink">
+          <span className="text-sm font-black uppercase tracking-tight text-ink">
             {wordmark}
           </span>
         </div>
 
         <nav
           aria-label="Main"
-          className="hidden items-center rounded-full border border-white/5 bg-[linear-gradient(180deg,rgba(30,30,30,0.6),rgba(10,10,10,0.9))] p-1.5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md md:flex"
+          className="hidden items-center rounded-full border border-white/5 bg-[linear-gradient(180deg,rgba(30,30,30,0.6),rgba(10,10,10,0.9))] p-1 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md md:flex"
         >
           {items.map((item) => (
             <button
@@ -120,7 +120,7 @@ export function PillNav({ wordmark, items, ctaLabel, ctaHref }: PillNavProps) {
               type="button"
               onClick={go(item.href)}
               aria-current={active === item.href ? "true" : undefined}
-              className="relative rounded-full px-5 py-2.5 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="relative rounded-full px-4 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               {active === item.href && (
                 <motion.span
@@ -142,7 +142,7 @@ export function PillNav({ wordmark, items, ctaLabel, ctaHref }: PillNavProps) {
           ))}
         </nav>
 
-        <div className="flex w-[140px] shrink-0 items-center justify-end gap-3">
+        <div className="flex w-[120px] shrink-0 items-center justify-end gap-3">
           <div className="hidden md:block">
             <RingCta label={ctaLabel} href={ctaHref} />
           </div>
@@ -151,7 +151,7 @@ export function PillNav({ wordmark, items, ctaLabel, ctaHref }: PillNavProps) {
             onClick={() => setMobileOpen((v) => !v)}
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-white/10 md:hidden"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-white/10 md:hidden"
           >
             <span
               className={`absolute block h-[2px] w-5 bg-ink transition-transform duration-300 ${
@@ -188,7 +188,7 @@ export function PillNav({ wordmark, items, ctaLabel, ctaHref }: PillNavProps) {
                 reduced ? { opacity: 0 } : { y: -20, opacity: 0, scale: 0.95 }
               }
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-x-4 top-[92px] z-50 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl md:hidden"
+              className="fixed inset-x-4 top-[76px] z-50 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl md:hidden"
             >
               <div className="flex flex-col p-6">
                 <div className="flex flex-col gap-1">
