@@ -8,12 +8,13 @@ import gsap from "gsap";
  * FoldNav — the landing's navigation.
  *
  * A fixed glass bar (wordmark left; RUN link and a MENU trigger right).
- * Opening the menu folds the page itself back in 3D: the element with
- * id "knell-page" scales down, tilts in perspective, and rounds its
- * corners into a card resting on the black menu layer, while the menu
- * links reveal in sequence. Closing reverses the fold.
+ * Opening the menu fades in a black field BEHIND the page, and the page
+ * itself (id "knell-page") folds back in 3D — scaling down, tilting in
+ * perspective, rounding its corners into a card that stays VISIBLE in
+ * the lower half of the screen — while the menu links reveal in sequence
+ * across the top. Closing reverses the fold.
  *
- * Under reduced motion there is no fold — the menu layer simply fades.
+ * Under reduced motion there is no fold — the field and links fade only.
  */
 
 export interface FoldNavItem {
@@ -42,13 +43,15 @@ export function FoldNav({
 }: FoldNavProps) {
   const [open, setOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const openRef = useRef(false);
 
   useEffect(() => {
     const page = document.getElementById("knell-page");
     const overlay = overlayRef.current;
-    if (!page || !overlay) return;
+    const backdrop = backdropRef.current;
+    if (!page || !overlay || !backdrop) return;
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -56,7 +59,7 @@ export function FoldNav({
     const links = overlay.querySelectorAll("[data-fold-link]");
     const footer = overlay.querySelector("[data-fold-footer]");
 
-    gsap.set(overlay, { autoAlpha: 0 });
+    gsap.set([overlay, backdrop], { autoAlpha: 0 });
 
     const tl = gsap.timeline({
       paused: true,
@@ -77,16 +80,20 @@ export function FoldNav({
     });
 
     if (reduced) {
-      tl.to(overlay, { autoAlpha: 1, duration: 0.25, ease: "power1.out" }, 0);
+      tl.to(backdrop, { autoAlpha: 1, duration: 0.25, ease: "power1.out" }, 0).to(
+        overlay,
+        { autoAlpha: 1, duration: 0.25, ease: "power1.out" },
+        0,
+      );
     } else {
-      tl.to(overlay, { autoAlpha: 1, duration: 0.35, ease: "power2.out" }, 0)
+      tl.to(backdrop, { autoAlpha: 1, duration: 0.35, ease: "power2.out" }, 0)
         .to(
           page,
           {
-            scale: 0.9,
-            y: "5vh",
-            rotationX: 5,
-            rotationY: -6,
+            scale: 0.82,
+            y: "16vh",
+            rotationX: 4,
+            rotationY: -5,
             transformPerspective: 1400,
             transformOrigin: "50% 0%",
             borderRadius: "24px",
@@ -98,7 +105,7 @@ export function FoldNav({
         )
         .fromTo(
           links,
-          { y: 34, autoAlpha: 0 },
+          { y: 26, autoAlpha: 0 },
           {
             y: 0,
             autoAlpha: 1,
@@ -106,13 +113,13 @@ export function FoldNav({
             stagger: 0.06,
             ease: "power3.out",
           },
-          0.2,
+          0.25,
         )
         .fromTo(
           footer,
           { autoAlpha: 0 },
           { autoAlpha: 1, duration: 0.3, ease: "power1.out" },
-          0.35,
+          0.4,
         );
     }
 
@@ -157,24 +164,33 @@ export function FoldNav({
 
   return (
     <>
+      {/* The black field the page folds onto — behind the page itself. */}
+      <div
+        ref={backdropRef}
+        aria-hidden="true"
+        className="invisible fixed inset-0 z-0 bg-abyss opacity-0"
+        style={{ pointerEvents: "none" }}
+      />
+
+      {/* The menu links — a transparent layer above the folded page. */}
       <div
         ref={overlayRef}
         aria-hidden={!open}
-        className="invisible fixed inset-0 z-40 bg-abyss opacity-0"
+        className="invisible fixed inset-0 z-40 opacity-0"
         style={{ pointerEvents: "none" }}
       >
         <nav
           aria-label="Main"
-          className="flex h-full flex-col items-center justify-center px-5"
+          className="flex h-full flex-col items-center px-5 pt-[11vh]"
         >
-          <ul className="flex flex-col items-center gap-md text-center lg:flex-row lg:gap-xl">
+          <ul className="flex max-w-6xl flex-wrap items-center justify-center gap-x-xl gap-y-md text-center">
             {items.map((item) => (
               <li key={item.href} data-fold-link>
                 <Link
                   href={item.href}
                   onClick={handleItemClick(item.href)}
                   tabIndex={open ? 0 : -1}
-                  className={`text-[clamp(2rem,5vw,3.5rem)] font-black uppercase leading-none tracking-tight transition-colors duration-150 ${
+                  className={`text-[clamp(1.5rem,3vw,2.5rem)] font-black uppercase leading-none tracking-tight transition-colors duration-150 ${
                     item.href === "/run"
                       ? "text-accent-bright hover:text-accent"
                       : "text-ink hover:text-accent-bright"
@@ -203,7 +219,9 @@ export function FoldNav({
           <div className="flex items-center gap-lg">
             <Link
               href="/run"
-              className="hidden text-caption-sm uppercase text-ink transition-opacity duration-150 hover:opacity-60 sm:block"
+              className={`text-caption-sm uppercase text-ink transition-opacity duration-150 hover:opacity-60 ${
+                open ? "hidden" : "hidden sm:block"
+              }`}
             >
               {runLabel}
             </Link>
