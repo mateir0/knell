@@ -59,10 +59,6 @@ export const strings = {
   nav: {
     wordmark: "Knell",
     run: "Run",
-    home: "Home",
-    menuLabel: "MENU",
-    closeLabel: "CLOSE",
-    footerMeta: "50 IDEAS KILLED BY HAND · 9 NAMES BURIED",
     items: [
       { label: "RUN A SWEEP", href: "/run" },
       { label: "THE MODES", href: "#modes" },

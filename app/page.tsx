@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { AnimatedRollText } from "@/components/landing/AnimatedRollText";
-import { FoldNav } from "@/components/landing/FoldNav";
 import { GrainGate } from "@/components/landing/GrainGate";
+import { PillNav } from "@/components/landing/PillNav";
 import { LandingMotion } from "@/components/landing/LandingMotion";
 import { ScreenIndex } from "@/components/landing/ScreenIndex";
 import { SectionHeader } from "@/components/landing/SectionHeader";
@@ -17,18 +17,15 @@ export default function LandingPage() {
 
   return (
     <>
-      <FoldNav
+      <PillNav
         wordmark={strings.nav.wordmark}
-        runLabel={strings.nav.run}
-        menuLabel={strings.nav.menuLabel}
-        closeLabel={strings.nav.closeLabel}
-        items={[...strings.nav.items]}
-        footerLine={hero.tagline}
-        footerMeta={strings.nav.footerMeta}
+        items={strings.nav.items.filter((item) => item.href.startsWith("#"))}
+        ctaLabel={hero.cta}
+        ctaHref="/run"
       />
-      <main id="knell-page" className="relative z-10">
+      <main className="relative z-10">
       {/* Screen 1 — KNELL */}
-      <section className="relative isolate flex min-h-screen flex-col overflow-hidden pt-20">
+      <section className="relative isolate flex min-h-screen flex-col overflow-hidden pt-24">
         <GrainGate />
         <div
           className="knell-hero-glow pointer-events-none absolute inset-0"
