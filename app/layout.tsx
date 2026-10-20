@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { strings } from "@/lib/strings";
+import { PageTransition } from "@/components/PageTransition";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ export default function RootLayout({
           forcedTheme="dark"
           enableSystem={false}
         >
-          {children}
+          <PageTransition>{children}</PageTransition>
         </ThemeProvider>
       </body>
     </html>
