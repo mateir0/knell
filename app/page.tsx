@@ -23,7 +23,7 @@ export default function LandingPage() {
           className="knell-hero-glow pointer-events-none absolute inset-0"
           aria-hidden="true"
         />
-        <nav className="relative z-10 flex items-center justify-between px-5 py-lg">
+        <nav className="relative z-10 flex items-center justify-between border-b border-faint bg-canvas/80 px-5 py-lg backdrop-blur-sm">
           <span className="text-caption-sm uppercase text-ink">
             {strings.nav.wordmark}
           </span>
@@ -36,7 +36,7 @@ export default function LandingPage() {
       </nav>
 
       <div className="knell-container relative z-10 flex flex-1 flex-col justify-center px-5 pb-section">
-        <ScreenIndex value={indices[0]} />
+        <ScreenIndex value={indices[0]} plated />
 
           <h1
             data-hero-wordmark
