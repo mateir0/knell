@@ -77,7 +77,10 @@ export function PageTransition({ children }: { children: ReactNode }) {
           duration: 0.8,
           ease: "power3.inOut",
           onComplete: () => {
-            router.push(`${url.pathname}${url.search}${url.hash}`);
+            window.scrollTo(0, 0);
+            router.push(`${url.pathname}${url.search}${url.hash}`, {
+              scroll: false,
+            });
           },
         });
 
@@ -120,6 +123,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
     if (!wrapper) {
       return;
     }
+    window.scrollTo(0, 0);
 
     gsap.set(wrapper, {
       scale: 0.6,
