@@ -68,7 +68,7 @@ export function CandidateCard({
 
   return (
     <article className="relative border border-faint bg-surface/80 p-xl backdrop-blur-sm transition-colors duration-150 hover:border-accent/50">
-      <div className="absolute right-xl top-xl">
+      <div className="flex justify-end">
         {status === "checking" ? (
           <span
             aria-live="polite"
@@ -87,7 +87,7 @@ export function CandidateCard({
         )}
       </div>
 
-      <h3 className="pr-[190px] text-heading uppercase text-ink break-words">
+      <h3 className="text-heading uppercase text-ink break-words">
         {candidate.name}
       </h3>
       <p className="mt-xs text-body-md text-body">{candidate.oneLiner}</p>

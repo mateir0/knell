@@ -163,12 +163,23 @@ export function RunPanel() {
     }
   }
 
+  function clearNeedInput() {
+    setRun((prev) =>
+      prev.error === strings.run.needInput ? { ...prev, error: null } : prev,
+    );
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setRun({ candidates: null, error: null, loading: true });
 
     if (mode === "hackathon") {
       const trimmedTheme = theme.trim();
+      const trimmedAbout = about.trim();
+      if (!trimmedTheme && !trimmedAbout) {
+        setRun({ candidates: null, error: strings.run.needInput, loading: false });
+        return;
+      }
       if (!trimmedTheme) {
         setRun({
           candidates: null,
@@ -250,7 +261,7 @@ export function RunPanel() {
 
         <div className="flex flex-1 justify-center">
           <div
-            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/80 p-1 backdrop-blur-sm"
+            className="inline-flex flex-1 items-center gap-1 rounded-full border border-border bg-surface/80 p-1 backdrop-blur-sm"
             role="group"
             aria-label={strings.run.modes.hackathon}
           >
@@ -262,7 +273,7 @@ export function RunPanel() {
                   type="button"
                   onClick={() => setMode(option)}
                   aria-pressed={active}
-                  className={`rounded-full border border-transparent px-3 py-2 text-button uppercase transition-colors duration-150 sm:px-5 ${
+                  className={`rounded-full border border-transparent px-3 py-2 text-[11px] tracking-wide font-bold whitespace-nowrap uppercase transition-colors duration-150 sm:text-button sm:px-5 ${
                     active ? "bg-accent/10 text-accent border-accent/60" : "text-body hover:text-ink"
                   }`}
                 >
@@ -305,10 +316,12 @@ export function RunPanel() {
               <Textarea
                 id="theme"
                 name="theme"
-                required
                 value={theme}
                 placeholder={strings.run.hackathon.theme.placeholder}
-                onChange={(event) => setTheme(event.target.value)}
+                onChange={(event) => {
+                  setTheme(event.target.value);
+                  clearNeedInput();
+                }}
               />
             </div>
 
@@ -321,7 +334,10 @@ export function RunPanel() {
                 name="about"
                 value={about}
                 placeholder={strings.run.hackathon.about.placeholder}
-                onChange={(event) => setAbout(event.target.value)}
+                onChange={(event) => {
+                  setAbout(event.target.value);
+                  clearNeedInput();
+                }}
               />
             </div>
 

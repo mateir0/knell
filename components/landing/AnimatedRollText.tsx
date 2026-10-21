@@ -75,10 +75,11 @@ export function AnimatedRollText({ text, className }: AnimatedRollTextProps) {
                 className="inline-block h-[0.95em] overflow-hidden align-top"
               >
                 <span
-                  className={`flex flex-col transition-transform duration-500 [transition-timing-function:cubic-bezier(0.76,0,0.24,1)] ${
-                    rolled ? "-translate-y-1/2" : "translate-y-0"
-                  }`}
-                  style={{ transitionDelay: `${index * STAGGER_MS}ms` }}
+                  className="flex flex-col transition-transform duration-500 [transition-timing-function:cubic-bezier(0.76,0,0.24,1)]"
+                  style={{
+                    transitionDelay: `${index * STAGGER_MS}ms`,
+                    transform: rolled ? "translateY(-0.95em)" : "translateY(0)",
+                  }}
                 >
                   <span className="block h-[0.95em] leading-[0.95]">
                     {letter}

@@ -317,6 +317,7 @@ export const strings = {
       "Fill in your stack, or what you know — at least one of the two. Knell needs a foothold.",
     themeRequiredError:
       "Give it a theme first. That is the one thing it cannot start without.",
+    needInput: "I need something to work with — a theme, or a few words about you.",
     resultsNote: "These are unchecked. The internet sweep is where they die.",
     resultsTitle: "Candidates",
     noCandidates: "No candidates came back. Nothing to show — try again.",
