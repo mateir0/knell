@@ -12,6 +12,11 @@ export const JUDGE_BASE_URL = process.env.JUDGE_BASE_URL || LLM_BASE_URL;
 export const JUDGE_MODEL = process.env.JUDGE_MODEL || LLM_MODEL;
 export const JUDGE_API_KEY = process.env.JUDGE_API_KEY || LLM_API_KEY;
 
+export const JUDGE_TEMPERATURE = (() => {
+  const parsed = Number(process.env.JUDGE_TEMPERATURE);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 2 ? parsed : 0.2;
+})();
+
 const REQUEST_TIMEOUT_MS = 90_000;
 const WRITER_TIMEOUT_MS = 20_000;
 
@@ -287,7 +292,7 @@ ${pack.excerpts.map((excerpt) => `SOURCE: ${excerpt.url}\n${excerpt.text}`).join
       baseUrl: JUDGE_BASE_URL,
       model: JUDGE_MODEL,
       apiKey: JUDGE_API_KEY,
-      temperature: 0.2,
+      temperature: JUDGE_TEMPERATURE,
       timeoutMs: REQUEST_TIMEOUT_MS,
     },
   );
