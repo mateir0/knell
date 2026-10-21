@@ -87,20 +87,80 @@ export async function fetchExcerpt(url: string): Promise<string | null> {
   }
 }
 
-async function searchSlot(
-  query: string,
-): Promise<EvidenceResult[] | undefined> {
+async function searchSerper(query: string): Promise<EvidenceResult[] | null> {
+  const apiKey = process.env.SERPER_API_KEY?.trim();
+  if (!apiKey) {
+    return null;
+  }
+
   try {
-    return await searchSerp(query);
-  } catch (error) {
-    if (
-      error instanceof SearchNotConfiguredError ||
-      error instanceof SearchBudgetExhaustedError
-    ) {
-      throw error;
+    const response = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-KEY": apiKey,
+      },
+      body: JSON.stringify({ q: query, num: 5 }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = (await response.json()) as {
+      organic?: Array<{
+        title?: unknown;
+        link?: unknown;
+        snippet?: unknown;
+      }>;
+    };
+
+    const organic = Array.isArray(payload?.organic) ? payload.organic : [];
+
+    return organic
+      .slice(0, 5)
+      .map((entry) => ({
+        title: typeof entry.title === "string" ? entry.title : "",
+        url: typeof entry.link === "string" ? entry.link : "",
+        snippet: typeof entry.snippet === "string" ? entry.snippet : "",
+      }))
+      .filter((entry) => entry.url !== "");
+  } catch {
+    return [];
+  }
+}
+
+async function searchSlot(query: string): Promise<EvidenceResult[]> {
+  if (process.env.SERPAPI_API_KEY?.trim()) {
+    let budgetError: SearchBudgetExhaustedError | null = null;
+    try {
+      const serpResults = await searchSerp(query);
+      if (serpResults.length > 0) {
+        return serpResults;
+      }
+    } catch (error) {
+      if (error instanceof SearchBudgetExhaustedError) {
+        budgetError = error;
+      }
+    }
+
+    const serperResults = await searchSerper(query);
+    if (serperResults) {
+      return serperResults;
+    }
+    if (budgetError) {
+      throw budgetError;
     }
     return [];
   }
+
+  const serperResults = await searchSerper(query);
+  if (serperResults) {
+    return serperResults;
+  }
+  throw new SearchNotConfiguredError("no search provider is configured");
 }
 
 export async function buildEvidence(
