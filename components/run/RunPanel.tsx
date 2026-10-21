@@ -245,7 +245,7 @@ export function RunPanel() {
 
   return (
     <div>
-      <nav className="flex items-center justify-between gap-md border-b border-faint py-lg">
+      <nav className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-md border-b border-faint py-lg">
         <div className="flex items-center md:w-[150px]">
           <MagneticButton
             href="/"
@@ -259,7 +259,7 @@ export function RunPanel() {
           </MagneticButton>
         </div>
 
-        <div className="flex flex-1 justify-center">
+        <div className="flex flex-1 justify-center max-sm:basis-full max-sm:order-last">
           <div
             className="inline-flex flex-1 items-center gap-1 rounded-full border border-border bg-surface/80 p-1 backdrop-blur-sm"
             role="group"
