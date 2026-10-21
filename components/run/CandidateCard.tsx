@@ -129,6 +129,11 @@ export function CandidateCard({
               ))}
             </ul>
           ) : null}
+          {status === "done" && result.cached ? (
+            <p className="text-caption-sm uppercase text-muted">
+              {strings.run.sweep.fromGraveyard}
+            </p>
+          ) : null}
           {onRetry && !sweepRunning ? (
             <div className="pt-xs">
               <Button variant="ghost" onClick={onRetry}>

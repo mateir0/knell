@@ -282,6 +282,15 @@ export default function LandingPage() {
           </div>
 
           <p className="mt-xl text-body-md text-muted">{graveyard.tally}</p>
+
+          <p className="mt-md">
+            <a
+              href="/graveyard"
+              className="relative text-body-sm text-link transition-colors duration-200 after:absolute after:-bottom-0.5 after:left-0 after:h-[1px] after:w-0 after:bg-link after:transition-[width] after:duration-200 after:ease-out hover:after:w-full"
+            >
+              {strings.landing.graveyardLink}
+            </a>
+          </p>
         </div>
       </section>
 

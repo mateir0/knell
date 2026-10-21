@@ -236,6 +236,8 @@ export const strings = {
         },
       ] satisfies readonly Tombstone[],
     },
+
+    graveyardLink: "Walk the full graveyard",
   },
 
   run: {
@@ -334,6 +336,7 @@ export const strings = {
       killedBy: "Killed by",
       cause: "Cause of death",
       opening: "The opening",
+      fromGraveyard: "From the graveyard — no searches spent.",
     },
     verdicts: {
       dead: "Dead",
@@ -342,6 +345,13 @@ export const strings = {
       alive: "Alive",
       couldNotCheck: "Could not check",
     },
+  },
+
+  graveyard: {
+    title: "The Graveyard",
+    subtitle:
+      "Every idea Knell has killed or cleared. It remembers, so nobody pays to check the same corpse twice.",
+    empty: "Nothing buried yet. Run a sweep and the bell starts its work.",
   },
 
   errors: {

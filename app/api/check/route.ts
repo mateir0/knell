@@ -8,6 +8,7 @@ import {
 } from "@/lib/evidence";
 import { judgeCandidate, writeQueries } from "@/lib/judge";
 import { ModelUnreachableError } from "@/lib/llm";
+import { findVerdict, recordVerdict } from "@/lib/graveyard";
 import { clientKeyFrom, consumeCheck } from "@/lib/rate-limit";
 import type { CheckResult } from "@/lib/verdict";
 
@@ -46,6 +47,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const cached = await findVerdict(candidate.data.name);
+  if (cached) {
+    return NextResponse.json({ ...cached, cached: true });
+  }
+
   if (!consumeCheck(clientKeyFrom(request))) {
     return NextResponse.json(unchecked(strings.errors.rateLimited));
   }
@@ -78,6 +84,7 @@ export async function POST(request: Request) {
       return NextResponse.json(unchecked(strings.errors.judgeNoProof));
     }
 
+    let served: CheckResult;
     if (verdict.verdict === "dead" || verdict.verdict === "zombie_gap") {
       if (
         verdict.killerUrl == null ||
@@ -86,15 +93,14 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json(unchecked(strings.errors.judgeNoProof));
       }
-      return NextResponse.json({ ...verdict, headline });
+      served = { ...verdict, headline };
+    } else {
+      served = { ...verdict, headline, killerName: null, killerUrl: null };
     }
 
-    return NextResponse.json({
-      ...verdict,
-      headline,
-      killerName: null,
-      killerUrl: null,
-    });
+    await recordVerdict(candidate.data, pack, served);
+
+    return NextResponse.json(served);
   } catch (error) {
     if (error instanceof SearchNotConfiguredError) {
       return NextResponse.json(unchecked(strings.errors.searchNotConfigured));

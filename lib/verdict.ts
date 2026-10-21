@@ -11,6 +11,7 @@ export type CheckResult = {
   killerName: string | null;
   killerUrl: string | null;
   receiptUrls: string[];
+  cached?: boolean;
 };
 
 export type EvidenceResult = {
