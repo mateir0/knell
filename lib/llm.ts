@@ -5,6 +5,7 @@ import {
   type HackathonIntake,
   type Intake,
 } from "./schema";
+import { genAiAttributes, withSpan } from "./trace";
 
 export const LLM_BASE_URL =
   process.env.LLM_BASE_URL ?? "http://localhost:11434/v1";
@@ -119,7 +120,7 @@ async function assertReachable(): Promise<void> {
   }
 }
 
-async function chat(messages: ChatMessage[]): Promise<string> {
+async function chatCore(messages: ChatMessage[]): Promise<string> {
   const endpoint = `${LLM_BASE_URL.replace(/\/+$/, "")}/chat/completions`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -171,6 +172,15 @@ async function chat(messages: ChatMessage[]): Promise<string> {
   }
 
   return content;
+}
+
+async function chat(messages: ChatMessage[]): Promise<string> {
+  return withSpan(
+    "gen_ai.chat",
+    "gen_ai.chat",
+    genAiAttributes(LLM_MODEL, LLM_BASE_URL),
+    () => chatCore(messages),
+  ) as Promise<string>;
 }
 
 function extractJsonArray(raw: string): string | null {

@@ -7,6 +7,7 @@ import {
 } from "./llm";
 import type { Candidate } from "./schema";
 import type { CheckResult, EvidencePack, VerdictKind } from "./verdict";
+import { genAiAttributes, withSpan } from "./trace";
 
 export const JUDGE_BASE_URL = process.env.JUDGE_BASE_URL || LLM_BASE_URL;
 export const JUDGE_MODEL = process.env.JUDGE_MODEL || LLM_MODEL;
@@ -20,7 +21,7 @@ export const JUDGE_TEMPERATURE = (() => {
 const REQUEST_TIMEOUT_MS = 90_000;
 const WRITER_TIMEOUT_MS = 20_000;
 
-type ChatMessage = {
+export type ChatMessage = {
   role: "system" | "user";
   content: string;
 };
@@ -204,16 +205,22 @@ export async function writeQueries(
   candidate: Candidate,
 ): Promise<EvidencePack["queries"]> {
   try {
-    const reply = await chatSlot(
-      LLM_BASE_URL,
-      LLM_MODEL,
-      LLM_API_KEY,
-      0.9,
-      [
-        { role: "system", content: QUERY_SYSTEM_PROMPT },
-        { role: "user", content: userBrief(candidate) },
-      ],
-      WRITER_TIMEOUT_MS,
+    const reply = await withSpan<string>(
+      "gen_ai.chat",
+      "gen_ai.chat",
+      genAiAttributes(LLM_MODEL, LLM_BASE_URL),
+      () =>
+        chatSlot(
+          LLM_BASE_URL,
+          LLM_MODEL,
+          LLM_API_KEY,
+          0.9,
+          [
+            { role: "system", content: QUERY_SYSTEM_PROMPT },
+            { role: "user", content: userBrief(candidate) },
+          ],
+          WRITER_TIMEOUT_MS,
+        ),
     );
 
     const parsed = parseJsonObject(reply);
@@ -268,11 +275,21 @@ function evidenceList(pack: EvidencePack): string {
   return lines.join("\n");
 }
 
-export async function judgeCandidate(
+export function buildJudgeMessages(
   candidate: Candidate,
   pack: EvidencePack,
-): Promise<CheckResult> {
-  const userPrompt = `${userBrief(candidate)}
+): ChatMessage[] {
+  return [
+    { role: "system", content: JUDGE_SYSTEM_PROMPT },
+    { role: "user", content: buildUserPrompt(candidate, pack) },
+  ];
+}
+
+export function buildUserPrompt(
+  candidate: Candidate,
+  pack: EvidencePack,
+): string {
+  return `${userBrief(candidate)}
 
 SEARCH QUERIES RUN:
 - existence: ${pack.queries.existence}
@@ -284,18 +301,27 @@ ${evidenceList(pack)}
 
 PAGE EXCERPTS:
 ${pack.excerpts.map((excerpt) => `SOURCE: ${excerpt.url}\n${excerpt.text}`).join("\n\n")}`;
+}
 
-  const parsed = await askSlot(
-    JUDGE_SYSTEM_PROMPT,
-    userPrompt,
-    {
-      baseUrl: JUDGE_BASE_URL,
-      model: JUDGE_MODEL,
-      apiKey: JUDGE_API_KEY,
-      temperature: JUDGE_TEMPERATURE,
-      timeoutMs: REQUEST_TIMEOUT_MS,
-    },
-  );
+export async function judgeCandidate(
+  candidate: Candidate,
+  pack: EvidencePack,
+): Promise<CheckResult> {
+  const messages = buildJudgeMessages(candidate, pack);
+
+  const parsed = (await withSpan<Record<string, unknown>>(
+    "gen_ai.chat",
+    "gen_ai.chat",
+    genAiAttributes(JUDGE_MODEL, JUDGE_BASE_URL),
+    () =>
+      askSlot(messages[0].content, messages[1].content, {
+        baseUrl: JUDGE_BASE_URL,
+        model: JUDGE_MODEL,
+        apiKey: JUDGE_API_KEY,
+        temperature: JUDGE_TEMPERATURE,
+        timeoutMs: REQUEST_TIMEOUT_MS,
+      }),
+  )) as Record<string, unknown>;
 
   const verdict = parsed.verdict as VerdictKind;
   if (!VERDICT_KINDS.includes(verdict)) {

@@ -1,7 +1,10 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
-import { generateCandidates, ModelOutputError, ModelUnreachableError } from "@/lib/llm";
 import { intakeSchema } from "@/lib/schema";
 import { strings } from "@/lib/strings";
+import { ModelOutputError, ModelUnreachableError } from "@/lib/llm";
+import { withSpan } from "@/lib/trace";
+import { runGenerateWorkflow } from "@/lib/workflows";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,30 +36,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: strings.run.emptyError }, { status: 400 });
   }
 
-  try {
-    const candidates = await generateCandidates(intake.data);
-    return NextResponse.json({ candidates });
-  } catch (error) {
-    if (error instanceof ModelUnreachableError) {
-      return NextResponse.json(
-        {
-          error: strings.errors.modelUnreachable,
-          detail: error.message,
-        },
-        { status: 503 },
-      );
-    }
+  const response = await withSpan<NextResponse>(
+    "knell.generate",
+    "knell.generate",
+    { "knell.mode": intake.data.mode },
+    async () => {
+      try {
+        const candidates = await runGenerateWorkflow(intake.data);
+        return NextResponse.json({ candidates });
+      } catch (error) {
+        if (error instanceof ModelUnreachableError) {
+          Sentry.captureException(error);
+          return NextResponse.json(
+            {
+              error: strings.errors.modelUnreachable,
+              detail: error.message,
+            },
+            { status: 503 },
+          );
+        }
 
-    if (error instanceof ModelOutputError) {
-      return NextResponse.json(
-        {
-          error: strings.errors.invalidCandidates,
-          detail: error.message,
-        },
-        { status: 502 },
-      );
-    }
+        if (error instanceof ModelOutputError) {
+          Sentry.captureException(error);
+          return NextResponse.json(
+            {
+              error: strings.errors.invalidCandidates,
+              detail: error.message,
+            },
+            { status: 502 },
+          );
+        }
 
-    return NextResponse.json({ error: strings.errors.generic }, { status: 500 });
-  }
+        Sentry.captureException(error);
+        return NextResponse.json({ error: strings.errors.generic }, { status: 500 });
+      }
+    },
+  );
+
+  return response;
 }

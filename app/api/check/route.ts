@@ -1,30 +1,21 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { candidateSchema } from "@/lib/schema";
 import { strings } from "@/lib/strings";
 import {
-  buildEvidence,
   SearchBudgetExhaustedError,
   SearchNotConfiguredError,
 } from "@/lib/evidence";
-import { judgeCandidate, writeQueries } from "@/lib/judge";
 import { ModelUnreachableError } from "@/lib/llm";
 import { findVerdict, recordVerdict } from "@/lib/graveyard";
 import { clientKeyFrom, consumeCheck } from "@/lib/rate-limit";
-import type { CheckResult } from "@/lib/verdict";
+import { withSpan } from "@/lib/trace";
+import { unchecked } from "@/lib/validate";
+import { runCheckWorkflow } from "@/lib/workflows";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
-
-function unchecked(headline: string): CheckResult {
-  return {
-    verdict: "could_not_check",
-    headline,
-    killerName: null,
-    killerUrl: null,
-    receiptUrls: [],
-  };
-}
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -47,70 +38,60 @@ export async function POST(request: Request) {
     );
   }
 
-  const cached = await findVerdict(candidate.data.name);
-  if (cached) {
-    return NextResponse.json({ ...cached, cached: true });
-  }
-
-  if (!consumeCheck(clientKeyFrom(request))) {
-    return NextResponse.json(unchecked(strings.errors.rateLimited));
-  }
-
-  try {
-    const queries = await writeQueries(candidate.data);
-    const pack = await buildEvidence(candidate.data, queries);
-    const verdict = await judgeCandidate(candidate.data, pack);
-
-    if (verdict.verdict === "could_not_check") {
-      return NextResponse.json(verdict);
-    }
-
-    const evidenceUrls = new Set<string>();
-    for (const key of ["existence", "demand", "incumbent"] as const) {
-      for (const entry of pack.results[key]) {
-        evidenceUrls.add(entry.url);
+  const response = await withSpan<NextResponse>(
+    "knell.check",
+    "knell.check",
+    { "knell.candidate.name": candidate.data.name },
+    async (span) => {
+      const cached = await findVerdict(candidate.data.name);
+      if (cached) {
+        span.setAttribute("knell.verdict", cached.verdict);
+        span.setAttribute("knell.cached", true);
+        return NextResponse.json({ ...cached, cached: true });
       }
-    }
 
-    const headline = verdict.headline.trim();
-    if (headline === "") {
-      return NextResponse.json(unchecked(strings.errors.judgeNoProof));
-    }
+      if (!consumeCheck(clientKeyFrom(request))) {
+        span.setAttribute("knell.verdict", "could_not_check");
+        span.setAttribute("knell.cached", false);
+        return NextResponse.json(unchecked(strings.errors.rateLimited));
+      }
 
-    if (
-      verdict.receiptUrls.length === 0 ||
-      !verdict.receiptUrls.every((url) => evidenceUrls.has(url))
-    ) {
-      return NextResponse.json(unchecked(strings.errors.judgeNoProof));
-    }
+      try {
+        const outcome = await runCheckWorkflow(candidate.data);
+        span.setAttribute("knell.verdict", outcome.served.verdict);
+        span.setAttribute("knell.cached", false);
 
-    let served: CheckResult;
-    if (verdict.verdict === "dead" || verdict.verdict === "zombie_gap") {
-      if (
-        verdict.killerUrl == null ||
-        !evidenceUrls.has(verdict.killerUrl) ||
-        verdict.killerName == null
-      ) {
+        if (outcome.served.verdict === "could_not_check") {
+          if (outcome.served.headline === strings.errors.judgeNoProof) {
+            Sentry.captureException(
+              new Error("the judge returned a verdict without proof"),
+            );
+          }
+          return NextResponse.json(outcome.served);
+        }
+
+        await recordVerdict(outcome.candidate, outcome.pack, outcome.served);
+        return NextResponse.json(outcome.served);
+      } catch (error) {
+        span.setAttribute("knell.verdict", "could_not_check");
+        span.setAttribute("knell.cached", false);
+        if (error instanceof SearchNotConfiguredError) {
+          Sentry.captureException(error);
+          return NextResponse.json(unchecked(strings.errors.searchNotConfigured));
+        }
+        if (error instanceof SearchBudgetExhaustedError) {
+          Sentry.captureException(error);
+          return NextResponse.json(unchecked(strings.errors.searchExhausted));
+        }
+        if (error instanceof ModelUnreachableError) {
+          Sentry.captureException(error);
+          return NextResponse.json(unchecked(strings.errors.modelUnreachable));
+        }
+        Sentry.captureException(error);
         return NextResponse.json(unchecked(strings.errors.judgeNoProof));
       }
-      served = { ...verdict, headline };
-    } else {
-      served = { ...verdict, headline, killerName: null, killerUrl: null };
-    }
+    },
+  );
 
-    await recordVerdict(candidate.data, pack, served);
-
-    return NextResponse.json(served);
-  } catch (error) {
-    if (error instanceof SearchNotConfiguredError) {
-      return NextResponse.json(unchecked(strings.errors.searchNotConfigured));
-    }
-    if (error instanceof SearchBudgetExhaustedError) {
-      return NextResponse.json(unchecked(strings.errors.searchExhausted));
-    }
-    if (error instanceof ModelUnreachableError) {
-      return NextResponse.json(unchecked(strings.errors.modelUnreachable));
-    }
-    return NextResponse.json(unchecked(strings.errors.judgeNoProof));
-  }
+  return response;
 }

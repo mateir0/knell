@@ -1,8 +1,16 @@
 import type { Candidate } from "./schema";
 import type { EvidencePack, EvidenceResult } from "./verdict";
+import { withSpan } from "./trace";
 
 export class SearchNotConfiguredError extends Error {}
 export class SearchBudgetExhaustedError extends Error {}
+
+type SearchProvider = "serpapi" | "serper";
+
+type SlotResult = {
+  results: EvidenceResult[];
+  provider: SearchProvider;
+};
 
 const SEARCH_TIMEOUT_MS = 10_000;
 const EXCERPT_TIMEOUT_MS = 6_000;
@@ -63,28 +71,35 @@ export async function searchSerp(query: string): Promise<EvidenceResult[]> {
 }
 
 export async function fetchExcerpt(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url, {
-      cache: "no-store",
-      redirect: "follow",
-      signal: AbortSignal.timeout(EXCERPT_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      return null;
-    }
+  return await withSpan<string | null>(
+    "knell.fetch",
+    "knell.fetch",
+    null,
+    async () => {
+      try {
+        const response = await fetch(url, {
+          cache: "no-store",
+          redirect: "follow",
+          signal: AbortSignal.timeout(EXCERPT_TIMEOUT_MS),
+        });
+        if (!response.ok) {
+          return null;
+        }
 
-    const html = await response.text();
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+        const html = await response.text();
+        const text = html
+          .replace(/<script[\s\S]*?<\/script>/gi, " ")
+          .replace(/<style[\s\S]*?<\/style>/gi, " ")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
 
-    return text.slice(0, EXCERPT_MAX_CHARS);
-  } catch {
-    return null;
-  }
+        return text.slice(0, EXCERPT_MAX_CHARS);
+      } catch {
+        return null;
+      }
+    },
+  );
 }
 
 async function searchSerper(query: string): Promise<EvidenceResult[] | null> {
@@ -132,13 +147,13 @@ async function searchSerper(query: string): Promise<EvidenceResult[] | null> {
   }
 }
 
-async function searchSlot(query: string): Promise<EvidenceResult[]> {
+async function searchSlot(query: string): Promise<SlotResult> {
   if (process.env.SERPAPI_API_KEY?.trim()) {
     let budgetError: SearchBudgetExhaustedError | null = null;
     try {
       const serpResults = await searchSerp(query);
       if (serpResults.length > 0) {
-        return serpResults;
+        return { results: serpResults, provider: "serpapi" };
       }
     } catch (error) {
       if (error instanceof SearchBudgetExhaustedError) {
@@ -148,17 +163,17 @@ async function searchSlot(query: string): Promise<EvidenceResult[]> {
 
     const serperResults = await searchSerper(query);
     if (serperResults) {
-      return serperResults;
+      return { results: serperResults, provider: "serper" };
     }
     if (budgetError) {
       throw budgetError;
     }
-    return [];
+    return { results: [], provider: "serpapi" };
   }
 
   const serperResults = await searchSerper(query);
   if (serperResults) {
-    return serperResults;
+    return { results: serperResults, provider: "serper" };
   }
   throw new SearchNotConfiguredError("no search provider is configured");
 }
@@ -167,38 +182,52 @@ export async function buildEvidence(
   candidate: Candidate,
   queries: EvidencePack["queries"],
 ): Promise<EvidencePack> {
-  const slots = await Promise.all([
-    searchSlot(queries.existence),
-    searchSlot(queries.demand),
-    searchSlot(queries.incumbent),
-  ]);
+  return await withSpan<EvidencePack>(
+    "knell.search",
+    "knell.search",
+    null,
+    async (span) => {
+      const slots = await Promise.all([
+        searchSlot(queries.existence),
+        searchSlot(queries.demand),
+        searchSlot(queries.incumbent),
+      ]);
 
-  const results = {
-    existence: slots[0] ?? [],
-    demand: slots[1] ?? [],
-    incumbent: slots[2] ?? [],
-  };
+      const results = {
+        existence: slots[0]?.results ?? [],
+        demand: slots[1]?.results ?? [],
+        incumbent: slots[2]?.results ?? [],
+      };
 
-  const fetched = new Set<string>();
-  const targets: string[] = [];
-  const collect = (slots: EvidenceResult[], count: number) => {
-    for (const entry of slots.slice(0, count)) {
-      if (!fetched.has(entry.url)) {
-        fetched.add(entry.url);
-        targets.push(entry.url);
-      }
-    }
-  };
-  collect(results.existence, 2);
-  collect(results.demand, 1);
+      const provider: SearchProvider = slots.some(
+        (slot) => slot.provider === "serpapi",
+      )
+        ? "serpapi"
+        : "serper";
+      span.setAttribute("knell.search.provider", provider);
 
-  const fetchedExcerpts = await Promise.all(
-    targets.slice(0, 3).map((url) => fetchExcerpt(url)),
+      const fetched = new Set<string>();
+      const targets: string[] = [];
+      const collect = (slots: EvidenceResult[], count: number) => {
+        for (const entry of slots.slice(0, count)) {
+          if (!fetched.has(entry.url)) {
+            fetched.add(entry.url);
+            targets.push(entry.url);
+          }
+        }
+      };
+      collect(results.existence, 2);
+      collect(results.demand, 1);
+
+      const fetchedExcerpts = await Promise.all(
+        targets.slice(0, 3).map((url) => fetchExcerpt(url)),
+      );
+
+      const excerpts: EvidencePack["excerpts"] = fetchedExcerpts.flatMap(
+        (text, index) => (text ? [{ url: targets[index], text }] : []),
+      );
+
+      return { queries, results, excerpts };
+    },
   );
-
-  const excerpts: EvidencePack["excerpts"] = fetchedExcerpts.flatMap(
-    (text, index) => (text ? [{ url: targets[index], text }] : []),
-  );
-
-  return { queries, results, excerpts };
 }

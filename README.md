@@ -73,6 +73,32 @@ for every visual decision — colours, type scale, spacing, radii, components,
 states and motion. It is not modified by the app; the tokens live in
 `app/globals.css` and every component consumes them by name.
 
+## Engine room
+
+The two routes are thin shells over Mastra workflows (`lib/workflows.ts`):
+
+- `knell-generate` — one `generate` step around the candidate model. Failures
+  are marshaled through step outputs as typed data and re-thrown by the runner,
+  so the HTTP responses are exactly the same as before.
+- `knell-check` — `write-queries` → `build-evidence` → `judge` → `validate`.
+  Search and model failures travel as data between steps too; the runner
+  restores the error classes (and messages) before the route maps them. The
+  graveyard cache is still checked before the workflow starts.
+
+Sentry tracing is DSN-gated and off until you set `SENTRY_DSN` /
+`NEXT_PUBLIC_SENTRY_DSN`. Spans: `knell.generate` and `knell.check` (root
+routes), `gen_ai.chat` (each model call, with the model slot as an attribute),
+`knell.search` (with the serving search provider), `knell.fetch` (page
+excerpts) and `knell.graveyard` (cache hits and burials). Typed failures that
+change an outcome are captured as exceptions.
+
+The graveyard doubles as a training set. `scripts/export-judge-dataset.ts`
+dumps every real verdict as chat-format JSONL, `scripts/tinker/train_judge.py`
+fine-tunes a LoRA adapter on Tinker, and `scripts/tinker/eval_judge.py` scores
+it against the base model on a held-out split. The tuned judge replaces the
+production one only if it beats the base on both verdict agreement and
+receipt validity — the full loop is in `scripts/README-tinker.md`.
+
 ## Built so far / Coming next
 
 **Done (Prompt 1)**

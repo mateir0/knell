@@ -1,6 +1,7 @@
 import { MongoClient, type Collection } from "mongodb";
 import type { EvidencePack, CheckResult } from "./verdict";
 import type { Candidate } from "./schema";
+import { withSpan } from "./trace";
 
 export type GraveEntry = {
   name: string;
@@ -92,20 +93,31 @@ function isCheckResult(value: unknown): value is CheckResult {
 }
 
 export async function findVerdict(name: string): Promise<CheckResult | null> {
-  try {
-    const collection = await getCollection();
-    if (!collection) {
-      return null;
-    }
-    const doc = await collection.findOne(
-      { key: graveKey(name) },
-      { maxTimeMS: MAX_TIME_MS },
-    );
-    const result = doc?.result;
-    return isCheckResult(result) ? result : null;
-  } catch {
-    return null;
-  }
+  return await withSpan<CheckResult | null>(
+    "knell.graveyard",
+    "knell.graveyard",
+    null,
+    async (span) => {
+      try {
+        const collection = await getCollection();
+        if (!collection) {
+          span.setAttribute("knell.graveyard.hit", false);
+          return null;
+        }
+        const doc = await collection.findOne(
+          { key: graveKey(name) },
+          { maxTimeMS: MAX_TIME_MS },
+        );
+        const result = doc?.result;
+        const found = isCheckResult(result) ? result : null;
+        span.setAttribute("knell.graveyard.hit", found !== null);
+        return found;
+      } catch {
+        span.setAttribute("knell.graveyard.hit", false);
+        return null;
+      }
+    },
+  );
 }
 
 export async function recordVerdict(
@@ -113,32 +125,39 @@ export async function recordVerdict(
   pack: EvidencePack,
   result: CheckResult,
 ): Promise<void> {
-  try {
-    if (!isEnabled() || result.verdict === "could_not_check") {
-      return;
-    }
-    const collection = await getCollection();
-    if (!collection) {
-      return;
-    }
-    await collection.updateOne(
-      { key: graveKey(candidate.name) },
-      {
-        $setOnInsert: {
-          key: graveKey(candidate.name),
-          name: candidate.name,
-          candidate,
-          queries: pack.queries,
-          evidence: { results: pack.results, excerpts: pack.excerpts },
-          result,
-          createdAt: new Date(),
-        },
-      },
-      { upsert: true, maxTimeMS: MAX_TIME_MS },
-    );
-  } catch {
-    return;
-  }
+  await withSpan<void>(
+    "knell.graveyard",
+    "knell.graveyard",
+    { "knell.verdict": result.verdict },
+    async () => {
+      try {
+        if (!isEnabled() || result.verdict === "could_not_check") {
+          return;
+        }
+        const collection = await getCollection();
+        if (!collection) {
+          return;
+        }
+        await collection.updateOne(
+          { key: graveKey(candidate.name) },
+          {
+            $setOnInsert: {
+              key: graveKey(candidate.name),
+              name: candidate.name,
+              candidate,
+              queries: pack.queries,
+              evidence: { results: pack.results, excerpts: pack.excerpts },
+              result,
+              createdAt: new Date(),
+            },
+          },
+          { upsert: true, maxTimeMS: MAX_TIME_MS },
+        );
+      } catch {
+        return;
+      }
+    },
+  );
 }
 
 export async function listGraves(limit = 60): Promise<GraveEntry[]> {
